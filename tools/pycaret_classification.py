@@ -28,19 +28,13 @@ class ModelTrainer:
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
-        setup(self.data, target=self.target, session_id=123, html=True, log_experiment=False)
+        setup(self.data, target=self.target, 
+              session_id=123, html=True, 
+              log_experiment=False, system_log=False)
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
-        original_stdout = sys.stdout
-        stderror = sys.stderr
-        sys.stderr = open(os.devnull, 'w')
-        with open("training.log", 'w') as f:
-            sys.stdout = f
-            self.best_model = compare_models()
-            print(self.best_model)
-            sys.stdout = original_stdout
-            sys.stderr = stderror
+        self.best_model = compare_models()
         self.results = pull()
 
     def save_model(self):
