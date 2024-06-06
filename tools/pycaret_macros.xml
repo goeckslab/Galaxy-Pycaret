@@ -1,0 +1,12 @@
+<macros>
+    <token name="@PYCARET_VERSION@">3.3.2</token>
+    <token name="@SUFFIX@">0</token>
+    <token name="@VERSION@">@PYCARET_VERSION@+@SUFFIX@</token>
+    <token name="@PROFILE@">21.05</token>
+    <xml name="python_requirements">
+        <requirements>
+            <container type="docker">quay.io/goeckslab/galaxy-pycaret:@PYCARET_VERSION@</container>
+        </requirements>
+    </xml>
+
+</macros>
