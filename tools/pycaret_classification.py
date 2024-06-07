@@ -1,15 +1,18 @@
 import sys
 import pandas as pd
 from pycaret.classification import setup, compare_models, save_model, plot_model, pull
+from pycaret.classification import ClassificationExperiment
 import os
 import logging
 from explainerdashboard import ClassifierExplainer, ExplainerDashboard
+from dashboard import generate_dashboard
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
 class ModelTrainer:
     def __init__(self, input_file, target_col, output_dir):
+        self.exp = ClassificationExperiment()
         self.input_file = input_file
         self.target_col = target_col
         self.output_dir = output_dir
@@ -28,23 +31,23 @@ class ModelTrainer:
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
-        setup(self.data, target=self.target, 
+        self.exp.setup(self.data, target=self.target, 
               session_id=123, html=True, 
               log_experiment=False, system_log=False)
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
-        self.best_model = compare_models()
-        self.results = pull()
+        self.best_model = self.exp.compare_models()
+        self.results = self.exp.pull()
 
     def save_model(self):
         LOG.info("Saving the model")
-        save_model(self.best_model, "model.pkl")
+        self.exp.save_model(self.best_model, "model.pkl")
 
     def generate_plots(self):
         LOG.info("Generating and saving plots")
-        plot_model(self.best_model, plot='auc', save=self.output_dir)
-        plot_model(self.best_model, plot='confusion_matrix', save=self.output_dir)
+        self.exp.plot_model(self.best_model, plot='auc', save=self.output_dir)
+        self.exp.plot_model(self.best_model, plot='confusion_matrix', save=self.output_dir)
         os.rename(os.path.join(self.output_dir, "Confusion Matrix.png"), os.path.join(self.output_dir, "Confusion_Matrix.png"))
 
     def save_html_report(self):
@@ -59,6 +62,7 @@ class ModelTrainer:
             <h2>Best Model</h2>
             <pre>{self.best_model}</pre>
             <h2>Comparison Results</h2>
+            <h3>The scoring grid with average cross-validation scores</h3>
             {self.results.to_html()}
         </body>
         </html>
@@ -68,8 +72,7 @@ class ModelTrainer:
 
     def save_dashboard(self):
         LOG.info("Saving explainer dashboard")
-        explainer = ClassifierExplainer(self.best_model, self.data.drop(columns=self.target), self.data[self.target])
-        dashboard = ExplainerDashboard(explainer)
+        dashboard = generate_dashboard(self.exp, self.best_model)
         dashboard.save_html("dashboard.html")
 
     def run(self):

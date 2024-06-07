@@ -18,8 +18,8 @@
         <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
     </inputs>
     <outputs>
-        <data name="dashboard" format="html" from_work_dir="dashboard.html" label="dashboard"/>
-        <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="comparison result"/>
+        <data name="dashboard" format="html" from_work_dir="dashboard.html" label="Dashboard"/>
+        <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="Comparison result"/>
     </outputs>
     <help>
         This tool uses PyCaret to train and evaluate machine learning models.
