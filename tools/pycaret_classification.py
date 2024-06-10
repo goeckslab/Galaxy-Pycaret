@@ -48,9 +48,17 @@ class ModelTrainer:
     def generate_plots(self):
         LOG.info("Generating and saving plots")
         # Generate PyCaret plots
-        plots = ['auc', 'confusion_matrix', 'threshold', 'pr', 'error', 'class_report', 'learning', 'calibration', 'vc', 'dimension', 'manifold', 'rfe', 'feature', 'feature_all']
+        plots = ['auc', 'confusion_matrix', 
+                 'threshold', 
+                 'pr', 'error', 
+                 'class_report', 'learning', 
+                 'calibration', 'vc', 
+                 'dimension', 
+                 'manifold', 'rfe', 
+                 'feature', 'feature_all']
         for plot_name in plots:
-            plot_path = self.exp.plot_model(self.best_model, plot=plot_name, save=True)
+            plot_path = self.exp.plot_model(self.best_model, plot=plot_name, 
+                                            save=True)
             self.plots[plot_name] = plot_path
 
     def encode_image_to_base64(self, img_path):
