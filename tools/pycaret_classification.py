@@ -1,11 +1,11 @@
 import sys
 import pandas as pd
-from pycaret.classification import setup, compare_models, save_model, plot_model, pull
 from pycaret.classification import ClassificationExperiment
 import os
 import logging
-from explainerdashboard import ClassifierExplainer, ExplainerDashboard
 from dashboard import generate_dashboard
+from jinja_report.generate_report import main as generate_report 
+import base64
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -20,6 +20,7 @@ class ModelTrainer:
         self.target = None
         self.best_model = None
         self.results = None
+        self.plots = {}
 
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
@@ -46,29 +47,57 @@ class ModelTrainer:
 
     def generate_plots(self):
         LOG.info("Generating and saving plots")
-        self.exp.plot_model(self.best_model, plot='auc', save=self.output_dir)
-        self.exp.plot_model(self.best_model, plot='confusion_matrix', save=self.output_dir)
-        os.rename(os.path.join(self.output_dir, "Confusion Matrix.png"), os.path.join(self.output_dir, "Confusion_Matrix.png"))
+        # Generate PyCaret plots
+        plots = ['auc', 'confusion_matrix', 'threshold', 'pr', 'error', 'class_report', 'learning', 'calibration', 'vc', 'dimension', 'manifold', 'rfe', 'feature', 'feature_all']
+        for plot_name in plots:
+            plot_path = self.exp.plot_model(self.best_model, plot=plot_name, save=True)
+            self.plots[plot_name] = plot_path
 
+    def encode_image_to_base64(self, img_path):
+        with open(img_path, 'rb') as img_file:
+            return base64.b64encode(img_file.read()).decode('utf-8')
+        
     def save_html_report(self):
         LOG.info("Saving HTML report")
-        html_content_results = f"""
-        <html>
-        <head>
-            <title>PyCaret Model Training Report</title>
-        </head>
-        <body>
-            <h1>Model Training Report</h1>
-            <h2>Best Model</h2>
-            <pre>{self.best_model}</pre>
-            <h2>Comparison Results</h2>
-            <h3>The scoring grid with average cross-validation scores</h3>
-            {self.results.to_html()}
-        </body>
-        </html>
-        """
-        with open("comparison_result.html", 'w') as f:
-            f.write(html_content_results)
+
+        model_name = type(self.best_model).__name__
+        
+        report_data = {
+            "title": "PyCaret Model Training Report",
+            'Best Model': [
+                {
+                    'type': 'table',
+                    'src': os.path.join(self.output_dir, 'best_model.csv'),
+                    'label': f'Best Model: {model_name}'
+                }
+            ],
+            'Comparison Results': [
+                {
+                    'type': 'table',
+                    'src': os.path.join(self.output_dir, 'comparison_results.csv'),
+                    'label': 'Comparison Result  <br> The scoring grid with average cross-validation scores'
+                }
+            ],
+            "Plots": []
+        }
+
+        # Save model summary
+        best_model_params = pd.DataFrame(self.best_model.get_params().items(), columns=['Parameter', 'Value'])
+        best_model_params.to_csv(os.path.join(self.output_dir, 'best_model.csv'), index=False)
+
+        # Save comparison results
+        self.results.to_csv(os.path.join(self.output_dir, "comparison_results.csv"))
+
+        # Add plots to the report data
+        for plot_name, plot_path in self.plots.items():
+            encoded_image = self.encode_image_to_base64(plot_path)
+            report_data['Plots'].append({
+                'type': 'html',
+                'src': f'data:image/png;base64,{encoded_image}',
+                'label': plot_name.capitalize()
+            })
+
+        generate_report(inputs=report_data, outfile=os.path.join(self.output_dir, "comparison_result.html"))
 
     def save_dashboard(self):
         LOG.info("Saving explainer dashboard")
