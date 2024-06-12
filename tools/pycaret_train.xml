@@ -13,6 +13,7 @@
     <inputs>
         <param name="model_type" type="select" label="Task">
             <option value="classification" >classification</option>
+            <option value="regression" >regression</option>
         </param>
         <param name="input_file" type="data" format="csv,tabular" label="Input Dataset (CSV or TSV)"/>
         <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
