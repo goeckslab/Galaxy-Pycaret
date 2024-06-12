@@ -18,6 +18,7 @@
         <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
     </inputs>
     <outputs>
+        <data name="model" format="data" from_work_dir="model.pkl" label="${tool.name} best model on ${on_string}"/>
         <data name="dashboard" format="html" from_work_dir="dashboard.html" label="${tool.name} Dashboard on ${on_string}"/>
         <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="${tool.name} Comparison result on ${on_string}"/>
     </outputs>

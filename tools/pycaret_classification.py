@@ -43,7 +43,7 @@ class ModelTrainer:
 
     def save_model(self):
         LOG.info("Saving the model")
-        self.exp.save_model(self.best_model, "model.pkl")
+        self.exp.save_model(self.best_model, "model")
 
     def generate_plots(self):
         LOG.info("Generating and saving plots")
