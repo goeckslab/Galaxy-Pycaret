@@ -1,0 +1,10 @@
+.env
+env
+*.csv
+*.tsv
+*.log
+*.png
+*.txt
+*.pkl
+*.html
+*.ipynb
