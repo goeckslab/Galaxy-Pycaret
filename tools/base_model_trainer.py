@@ -1,8 +1,7 @@
 import sys
 import pandas as pd
 import os
-import logging
-from jinja_report.generate_report import main as generate_report 
+import logging 
 import base64
 
 logging.basicConfig(level=logging.DEBUG)
@@ -49,31 +48,12 @@ class BaseModelTrainer:
     def encode_image_to_base64(self, img_path):
         with open(img_path, 'rb') as img_file:
             return base64.b64encode(img_file.read()).decode('utf-8')
-        
+
     def save_html_report(self):
         LOG.info("Saving HTML report")
 
         model_name = type(self.best_model).__name__
         
-        report_data = {
-            "title": "PyCaret Model Training Report",
-            'Best Model': [
-                {
-                    'type': 'table',
-                    'src': os.path.join(self.output_dir, 'best_model.csv'),
-                    'label': f'Best Model: {model_name}'
-                }
-            ],
-            'Comparison Results': [
-                {
-                    'type': 'table',
-                    'src': os.path.join(self.output_dir, 'comparison_results.csv'),
-                    'label': 'Comparison Result  <br> The scoring grid with average cross-validation scores'
-                }
-            ],
-            "Plots": []
-        }
-
         # Save model summary
         best_model_params = pd.DataFrame(self.best_model.get_params().items(), columns=['Parameter', 'Value'])
         best_model_params.to_csv(os.path.join(self.output_dir, 'best_model.csv'), index=False)
@@ -81,16 +61,95 @@ class BaseModelTrainer:
         # Save comparison results
         self.results.to_csv(os.path.join(self.output_dir, "comparison_results.csv"))
 
-        # Add plots to the report data
+        # Read and encode plot images
+        plots_html = ""
         for plot_name, plot_path in self.plots.items():
             encoded_image = self.encode_image_to_base64(plot_path)
-            report_data['Plots'].append({
-                'type': 'html',
-                'src': f'data:image/png;base64,{encoded_image}',
-                'label': plot_name
-            })
+            plots_html += f"""
+            <div class="plot">
+                <h3>{plot_name.capitalize()}</h3>
+                <img src="data:image/png;base64,{encoded_image}" alt="{plot_name}">
+            </div>
+            """
 
-        generate_report(inputs=report_data, outfile=os.path.join(self.output_dir, "comparison_result.html"))
+        # Generate HTML content
+        html_content = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>PyCaret Model Training Report</title>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 20px;
+                    background-color: #f4f4f4;
+                }}
+                .container {{
+                    max-width: 800px;
+                    margin: auto;
+                    background: white;
+                    padding: 20px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }}
+                h1 {{
+                    text-align: center;
+                    color: #333;
+                }}
+                h2 {{
+                    border-bottom: 2px solid #4CAF50;
+                    color: #4CAF50;
+                    padding-bottom: 5px;
+                }}
+                table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }}
+                table, th, td {{
+                    border: 1px solid #ddd;
+                }}
+                th, td {{
+                    padding: 8px;
+                    text-align: left;
+                }}
+                th {{
+                    background-color: #4CAF50;
+                    color: white;
+                }}
+                .plot {{
+                    text-align: center;
+                    margin: 20px 0;
+                }}
+                .plot img {{
+                    max-width: 100%;
+                    height: auto;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>PyCaret Model Training Report</h1>
+                <h2>Best Model: {model_name}</h2>
+                <table>
+                    <tr><th>Parameter</th><th>Value</th></tr>
+                    {best_model_params.to_html(index=False, header=False, classes='table')}
+                </table>
+                <h2>Comparison Results</h2>
+                <table>
+                    {self.results.to_html(index=False, classes='table')}
+                </table>
+                <h2>Plots</h2>
+                {plots_html}
+            </div>
+        </body>
+        </html>
+        """
+
+        with open(os.path.join(self.output_dir, "comparison_result.html"), "w") as file:
+            file.write(html_content)
 
     def save_dashboard(self):
         raise NotImplementedError("Subclasses should implement this method")

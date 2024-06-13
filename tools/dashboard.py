@@ -76,7 +76,7 @@ def generate_classifier_explainer_dashboard(
         )
         return ExplainerDashboard(
             explainer, mode=display_format, contributions=False, whatif=False, **dashboard_kwargs
-        )
+        ) 
 
 def generate_regression_explainer_dashboard(
         exp,
@@ -139,5 +139,5 @@ def generate_regression_explainer_dashboard(
             estimator, X_test_df, exp.y_test_transformed, **kwargs
         )
         return ExplainerDashboard(
-            explainer, mode=display_format, contributions=False, whatif=False, **dashboard_kwargs
+            explainer, mode=display_format, contributions=False, whatif=False, shap_interaction=False, decision_trees=False,  **dashboard_kwargs
         )
