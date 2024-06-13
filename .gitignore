@@ -8,3 +8,4 @@ env
 *.pkl
 *.html
 *.ipynb
+__pycache__

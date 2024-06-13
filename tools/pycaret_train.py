@@ -1,7 +1,8 @@
 import sys
 import logging
 
-from pycaret_classification import ModelTrainer
+from pycaret_classification import ClassificationModelTrainer
+from pycaret_regression import RegressionModelTrainer
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -12,5 +13,8 @@ output_dir = sys.argv[3]
 model_type = sys.argv[4]
 
 if model_type == "classification":
-    trainer = ModelTrainer(input_file, target_col, output_dir)
+    trainer = ClassificationModelTrainer(input_file, target_col, output_dir)
+    trainer.run()
+elif model_type == "regression":
+    trainer = RegressionModelTrainer(input_file, target_col, output_dir)
     trainer.run()
