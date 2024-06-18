@@ -8,16 +8,32 @@ logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
 class BaseModelTrainer:
-    def __init__(self, input_file, target_col, output_dir):
+    def __init__(self, input_file, target_col, output_dir, **kwargs):
         self.exp = None  # This will be set in the subclass
         self.input_file = input_file
         self.target_col = target_col
         self.output_dir = output_dir
+        # self.train_size = train_size
+        # self.normalize = normalize
+        # self.feature_selection = feature_selection
+        # self.cross_validation = cross_validation
+        # self.cross_validation_folds = cross_validation_folds
+        # self.remove_outliers = remove_outliers
+        # self.remove_multicollinearity = remove_multicollinearity
+        # self.polynomial_features = polynomial_features
+        # self.feature_interaction = feature_interaction
+        # self.feature_ratio = feature_ratio
+        # self.fix_imbalance = fix_imbalance
+        # self.models = models
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         self.data = None
         self.target = None
         self.best_model = None
         self.results = None
         self.plots = {}
+        
+        LOG.info(f"Model kwargs: {self.__dict__}")
 
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
@@ -29,9 +45,32 @@ class BaseModelTrainer:
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
-        self.exp.setup(self.data, target=self.target, 
-              session_id=123, html=True, 
-              log_experiment=False, system_log=False)
+        setup_params = {
+            'target': self.target,
+            'session_id': 123,
+            'html': True,
+            'log_experiment': False,
+            'system_log': False
+        }
+
+        if hasattr(self, 'train_size') and self.train_size is not None:
+            setup_params['train_size'] = self.train_size
+
+        if hasattr(self, 'normalize') and self.normalize is not None:
+            setup_params['normalize'] = self.normalize
+
+        if hasattr(self, 'feature_selection') and self.feature_selection is not None:
+            setup_params['feature_selection'] = self.feature_selection
+
+        if hasattr(self, 'cross_validation') and self.cross_validation is not None and self.cross_validation == False:
+            setup_params['cross_validation'] = self.cross_validation
+
+        if hasattr(self, 'cross_validation') and self.cross_validation is not None:
+            if hasattr(self, 'cross_validation_folds'):
+                setup_params['fold'] = self.cross_validation_folds
+
+        LOG.info(setup_params)
+        self.exp.setup(self.data, **setup_params)
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
@@ -40,7 +79,7 @@ class BaseModelTrainer:
 
     def save_model(self):
         LOG.info("Saving the model")
-        self.exp.save_model(self.best_model, "model.pkl")
+        self.exp.save_model(self.best_model, os.path.join(self.output_dir, "model.pkl"))
 
     def generate_plots(self):
         raise NotImplementedError("Subclasses should implement this method")
@@ -162,3 +201,4 @@ class BaseModelTrainer:
         self.generate_plots()
         self.save_html_report()
         self.save_dashboard()
+
