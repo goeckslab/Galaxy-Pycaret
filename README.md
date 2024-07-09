@@ -64,7 +64,7 @@ We welcome contributions of all kinds. To make contributions easy and effective,
 
 1. **Create an Issue**: Before starting work on a major change, create an issue to discuss it.
 2. **Fork and Branch**: Fork the repo and create a feature branch.
-3. **Write Tests**: Ensure your changes are well-tested.
+3. **Write Tests**: Ensure your changes are well-tested if applicable.
 4. **Code Style**: Follow the project’s coding conventions.
 5. **Commit Messages**: Write clear and concise commit messages.
 6. **Pull Request**: Submit a PR to the `dev` branch. Ensure your PR description is clear and includes the issue number.
@@ -78,6 +78,13 @@ We welcome contributions of all kinds. To make contributions easy and effective,
 2. **Open a Pull Request**:
    - Go to your fork on GitHub.
    - Click on the "New Pull Request" button.
-   - Select `dev` as the base branch and your feature branch as the compare branch.
+   - Select `dev` as the base branch and your feature branch as the compare branch. 
    - Fill in the PR template with details about your changes.
-3. **Review Process**: Your PR will be reviewed by a team member. Please address any feedback and update your PR as needed.
+
+3. **Rebase or Merge `dev` into Your Feature Branch**:
+    - Before submitting your PR or when `dev` has been updated, rebase or merge `dev` into your feature branch to ensure your branch is up to date:
+    
+4. **Resolve Conflicts**:
+    - If there are any conflicts during the rebase or merge, Git will pause and allow you to resolve the conflicts.
+
+5. **Review Process**: Your PR will be reviewed by a team member. Please address any feedback and update your PR as needed.
