@@ -59,6 +59,7 @@ We follow a structured branching and merging strategy to ensure code quality and
 
 2. **Supporting Branches**:
    - **Feature Branches**: Created from `dev` for new features.
+   - **Bugfix Branches**: Created from `dev` for bug fixes.
    - **Release Branches**: Created from `dev` when preparing a new release.
    - **Hotfix Branches**: Created from `main` for critical fixes in production. 
 
