@@ -31,6 +31,8 @@ See [documentation](https://docs.galaxyproject.org/en/master/admin/jobs.html#run
 To get started, you’ll need to fork the repository, clone it locally, and create a new branch for your contributions.
 
 1. **Fork the Repository**: Click the "Fork" button at the top right of this page.
+2. **Clone the Fork**
+3. **Create a Feature Branch**
 
 ## How We Manage the Repo
 
