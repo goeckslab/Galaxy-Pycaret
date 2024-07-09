@@ -31,8 +31,23 @@ See [documentation](https://docs.galaxyproject.org/en/master/admin/jobs.html#run
 To get started, you’ll need to fork the repository, clone it locally, and create a new branch for your contributions.
 
 1. **Fork the Repository**: Click the "Fork" button at the top right of this page.
-2. **Clone the Fork**
-3. **Create a Feature Branch**
+2. **Clone the Fork**:
+  ```bash
+    git clone https://github.com/<your-username>/Galaxy-Pycaret.git
+    cd <your-repo>
+  ```
+3. **Create a Feature/hotfix/bugfix Branch**:
+  ```bash
+    git checkout -b feature/<feature-branch-name>
+  ```
+  or
+  ```bash
+    git checkout -b hotfix/<hoxfix-branch-name>
+  ```
+  or
+  ```bash
+    git checkout -b bugfix/<bugfix-branch-name>
+  ```
 
 ## How We Manage the Repo
 
@@ -45,7 +60,7 @@ We follow a structured branching and merging strategy to ensure code quality and
 2. **Supporting Branches**:
    - **Feature Branches**: Created from `dev` for new features.
    - **Release Branches**: Created from `dev` when preparing a new release.
-   - **Hotfix Branches**: Created from `main` for critical fixes in production.
+   - **Hotfix Branches**: Created from `main` for critical fixes in production. 
 
 ### Workflow
 
@@ -73,10 +88,10 @@ We welcome contributions of all kinds. To make contributions easy and effective,
 
 1. **Push your Branch**:
     ```bash
-    git push origin feature/your-feature-name
+    git push origin feature/<feature-branch-name>
     ```
 2. **Open a Pull Request**:
-   - Go to your fork on GitHub.
+   - Navigate to the original repository where you created your fork.
    - Click on the "New Pull Request" button.
    - Select `dev` as the base branch and your feature branch as the compare branch. 
    - Fill in the PR template with details about your changes.
