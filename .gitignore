@@ -9,3 +9,5 @@ env
 *.html
 *.ipynb
 __pycache__
+.DS_Store
+tools/.DS_Store
