@@ -40,7 +40,7 @@ class BaseModelTrainer:
 
     def save_model(self):
         LOG.info("Saving the model")
-        self.exp.save_model(self.best_model, "model.pkl")
+        self.exp.save_model(self.best_model, "model")
 
     def generate_plots(self):
         raise NotImplementedError("Subclasses should implement this method")
