@@ -1,25 +1,134 @@
-<tool id="pycaret_tool" name="PyCaret Model Training" version="@VERSION@" profile="@PROFILE@">
-    <description>Train and evaluate machine learning models using PyCaret.</description>
+<tool id="pycaret_tool" name="PyCaret Model Comparison" version="@VERSION@" profile="@PROFILE@">
+    <description>Compare different machine learning models on a dataset using PyCaret.</description>
     <macros>
         <import>pycaret_macros.xml</import>
     </macros>
     <expand macro="python_requirements" />
     <command>
         <![CDATA[
-        python '$__tool_directory__/pycaret_train.py' $input_file $target_feature "`pwd`" $model_type
+        python $__tool_directory__/pycaret_train.py --input_file $input_file --target_col $target_feature --output_dir "`pwd`" --model_type $model_type
+        #if $customize_defaults == "true"
+                #if $train_size
+                --train_size $train_size 
+                #end if
+                #if $normalize
+                --normalize  
+                #end if
+                #if $feature_selection
+                --feature_selection
+                #end if
+                #if $enable_cross_validation == "true" 
+                --cross_validation 
+                #end if
+                #if $cross_validation_folds
+                --cross_validation_folds $cross_validation_folds 
+                #end if
+                #if $remove_outliers
+                --remove_outliers  
+                #end if
+                #if $remove_multicollinearity
+                --remove_multicollinearity 
+                #end if
+                #if $polynomial_features
+                --polynomial_features  
+                #end if
+                #if $fix_imbalance
+                --fix_imbalance 
+                #end if
+        #end if
         
         ]]>
     </command>
     <inputs>
-        <param name="model_type" type="select" label="Task">
-            <option value="classification" >classification</option>
-            <option value="regression" >regression</option>
-        </param>
-        <param name="input_file" type="data" format="csv,tabular" label="Input Dataset (CSV or TSV)"/>
-        <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
+        <param name="input_file" type="data" format="csv,tabular" label="Input Dataset (CSV or TSV)" />
+       <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
+        <!-- <conditional name="model_selection"> -->
+            <param name="model_type" type="select" label="Task">
+                <option value="classification">classification</option>
+                <option value="regression">regression</option>
+            </param>
+            <!-- <when value="classification">
+                <param name="classification_models" type="select" multiple="true" label="Only Select Classification Models if you don't want to compare all models">
+                    <option value="lr">Logistic Regression</option>
+                    <option value="knn">K Neighbors Classifier</option>
+                    <option value="nb">Naive Bayes</option>
+                    <option value="dt">Decision Tree Classifier</option>
+                    <option value="svm">SVM - Linear Kernel</option>
+                    <option value="rbfsvm">SVM - Radial Kernel</option>
+                    <option value="gpc">Gaussian Process Classifier</option>
+                    <option value="mlp">MLP Classifier</option>
+                    <option value="ridge">Ridge Classifier</option>
+                    <option value="rf">Random Forest Classifier</option>
+                    <option value="qda">Quadratic Discriminant Analysis</option>
+                    <option value="ada">Ada Boost Classifier</option>
+                    <option value="gbc">Gradient Boosting Classifier</option>
+                    <option value="lda">Linear Discriminant Analysis</option>
+                    <option value="et">Extra Trees Classifier</option>
+                    <option value="xgboost">Extreme Gradient Boosting</option>
+                    <option value="lightgbm">Light Gradient Boosting Machine</option>
+                    <option value="catboost">CatBoost Classifier</option>
+                </param>
+            </when>
+            <when value="regression">
+                <param name="regression_models" type="select" multiple="true" label="Only Select Regression Models if you don't want to compare all models">
+                    <option value="lr">Linear Regression</option>
+                    <option value="lasso">Lasso Regression</option>
+                    <option value="ridge">Ridge Regression</option>
+                    <option value="en">Elastic Net</option>
+                    <option value="lar">Least Angle Regression</option>
+                    <option value="llar">Lasso Least Angle Regression</option>
+                    <option value="omp">Orthogonal Matching Pursuit</option>
+                    <option value="br">Bayesian Ridge</option>
+                    <option value="ard">Automatic Relevance Determination</option>
+                    <option value="par">Passive Aggressive Regressor</option>
+                    <option value="ransac">Random Sample Consensus</option>
+                    <option value="tr">TheilSen Regressor</option>
+                    <option value="huber">Huber Regressor</option>
+                    <option value="kr">Kernel Ridge</option>
+                    <option value="svm">Support Vector Regression</option>
+                    <option value="knn">K Neighbors Regressor</option>
+                    <option value="dt">Decision Tree Regressor</option>
+                    <option value="rf">Random Forest Regressor</option>
+                    <option value="et">Extra Trees Regressor</option>
+                    <option value="ada">AdaBoost Regressor</option>
+                    <option value="gbr">Gradient Boosting Regressor</option>
+                    <option value="mlp">MLP Regressor</option>
+                    <option value="xgboost">Extreme Gradient Boosting</option>
+                    <option value="lightgbm">Light Gradient Boosting Machine</option>
+                    <option value="catboost">CatBoost Regressor</option>
+                </param>
+            </when>
+        </conditional> -->
+        <conditional name="advanced_settings">
+            <param name="customize_defaults" type="select" label="Customize Default Settings?" help="Select yes if you want to customize the default settings of the experiment.">
+                <option value="false" selected="true">No</option>
+                <option value="true">Yes</option>
+            </param>
+            <when value="true">
+                <param name="train_size" type="float" value="0.7" min="0.1" max="0.9" label="Train Size" help="Proportion of the dataset to include in the train split." />
+                <param name="normalize" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Normalize Data" help="Whether to normalize data before training." />
+                <param name="feature_selection" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Feature Selection" help="Whether to perform feature selection." />
+                <conditional name="cross_validation">
+                    <param name="enable_cross_validation" type="boolean" truevalue="true" falsevalue="false" checked="true" label="Enable Cross Validation?" help="Select whether to enable cross-validation. Default: Yes" />
+                    <when value="true">
+                        <param name="cross_validation_folds" type="integer" value="10" min="2" max="20" label="Cross Validation Folds" help="Number of folds to use for cross-validation. Default: 10" />
+                    </when>
+                    <when value="false">
+                        <!-- No additional parameters to show if the user selects 'No' -->
+                    </when>
+                </conditional>
+                <param name="remove_outliers" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Outliers" help="Whether to remove outliers from the dataset before training. Default: False" />
+                <param name="remove_multicollinearity" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Multicollinearity" help="Whether to remove multicollinear features before training. Default: False" />
+                <param name="polynomial_features" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Polynomial Features" help="Whether to create polynomial features before training. Default: False" />
+                <param name="fix_imbalance" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Fix Imbalance" help="Whether to use SMOTE or similar methods to fix imbalance in the dataset. Default: False" />
+            </when>
+            <when value="false">
+                <!-- No additional parameters to show if the user selects 'No' -->
+            </when>
+        </conditional>
     </inputs>
     <outputs>
-        <data name="model" format="data" from_work_dir="model.pkl" label="${tool.name} best model on ${on_string}"/>
+        <data name="model" format="data" from_work_dir="model.pkl" label="${tool.name} best model on ${on_string}" />
         <data name="dashboard" format="html" from_work_dir="dashboard.html" label="${tool.name} Dashboard on ${on_string}"/>
         <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="${tool.name} Comparison result on ${on_string}"/>
     </outputs>
