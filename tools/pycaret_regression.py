@@ -17,7 +17,7 @@ class RegressionModelTrainer(BaseModelTrainer):
 
     def generate_plots(self):
         LOG.info("Generating and saving plots")
-        plots = ['residuals', 'error', 'cooks', 'learning', 'vc', 'manifold', 'rfe', 'feature']
+        plots = ['residuals', 'error', 'cooks', 'learning', 'vc', 'manifold', 'rfe', 'feature', 'feature_all']
         for plot_name in plots:
             plot_path = self.exp.plot_model(self.best_model, plot=plot_name, save=True)
             self.plots[plot_name] = plot_path

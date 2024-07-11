@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
 class BaseModelTrainer:
-    def __init__(self, input_file, target_col, output_dir):
+    def __init__(self, input_file, target_col, output_dir, **kwargs):
         self.exp = None  # This will be set in the subclass
         self.input_file = input_file
         self.target_col = target_col
@@ -18,6 +18,11 @@ class BaseModelTrainer:
         self.best_model = None
         self.results = None
         self.plots = {}
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        self.setup_params = {}
+        
+        LOG.info(f"Model kwargs: {self.__dict__}")
 
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
@@ -29,9 +34,44 @@ class BaseModelTrainer:
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
-        self.exp.setup(self.data, target=self.target, 
-              session_id=123, html=True, 
-              log_experiment=False, system_log=False)
+        self.setup_params = {
+            'target': self.target,
+            'session_id': 123,
+            'html': True,
+            'log_experiment': False,
+            'system_log': False
+        }
+
+        if hasattr(self, 'train_size') and self.train_size is not None:
+            self.setup_params['train_size'] = self.train_size
+
+        if hasattr(self, 'normalize') and self.normalize is not None:
+            self.setup_params['normalize'] = self.normalize
+
+        if hasattr(self, 'feature_selection') and self.feature_selection is not None:
+            self.setup_params['feature_selection'] = self.feature_selection
+
+        if hasattr(self, 'cross_validation') and self.cross_validation is not None and self.cross_validation == False:
+            self.setup_params['cross_validation'] = self.cross_validation
+
+        if hasattr(self, 'cross_validation') and self.cross_validation is not None:
+            if hasattr(self, 'cross_validation_folds'):
+                self.setup_params['fold'] = self.cross_validation_folds
+
+        if hasattr(self, 'remove_outliers') and self.remove_outliers is not None:
+            self.setup_params['remove_outliers'] = self.remove_outliers
+
+        if hasattr(self, 'remove_multicollinearity') and self.remove_multicollinearity is not None:
+            self.setup_params['remove_multicollinearity'] = self.remove_multicollinearity
+
+        if hasattr(self, 'polynomial_features') and self.polynomial_features is not None:
+            self.setup_params['polynomial_features'] = self.polynomial_features
+
+        if hasattr(self, 'fix_imbalance') and self.fix_imbalance is not None:
+            self.setup_params['fix_imbalance'] = self.fix_imbalance
+
+        LOG.info(self.setup_params)
+        self.exp.setup(self.data, **self.setup_params)
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
@@ -54,6 +94,10 @@ class BaseModelTrainer:
 
         model_name = type(self.best_model).__name__
         
+        excluded_params = ['html', 'log_experiment', 'system_log']
+        filtered_setup_params = {k: v for k, v in self.setup_params.items() if k not in excluded_params}
+        setup_params_table = pd.DataFrame(list(filtered_setup_params.items()), columns=['Parameter', 'Value'])
+
         # Save model summary
         best_model_params = pd.DataFrame(self.best_model.get_params().items(), columns=['Parameter', 'Value'])
         best_model_params.to_csv(os.path.join(self.output_dir, 'best_model.csv'), index=False)
@@ -132,6 +176,11 @@ class BaseModelTrainer:
         <body>
             <div class="container">
                 <h1>PyCaret Model Training Report</h1>
+                <h2>Setup Parameters</h2>
+                <table>
+                    <tr><th>Parameter</th><th>Value</th></tr>
+                    {setup_params_table.to_html(index=False, header=False, classes='table')}
+                </table>
                 <h2>Best Model: {model_name}</h2>
                 <table>
                     <tr><th>Parameter</th><th>Value</th></tr>
