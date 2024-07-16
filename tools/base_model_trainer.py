@@ -1,7 +1,8 @@
-import pandas as pd
 import os
 import logging
 import base64
+
+import pandas as pd
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)

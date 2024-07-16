@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional
 import logging
+
 from pycaret.utils.generic import get_label_encoder
 
 logging.basicConfig(level=logging.DEBUG)

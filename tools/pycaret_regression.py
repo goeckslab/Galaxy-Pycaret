@@ -1,7 +1,8 @@
+import logging
+
 from base_model_trainer import BaseModelTrainer
 from pycaret.regression import RegressionExperiment
 from dashboard import generate_regression_explainer_dashboard
-import logging
 
 LOG = logging.getLogger(__name__)
 

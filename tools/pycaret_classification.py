@@ -1,6 +1,7 @@
+import logging
+
 from base_model_trainer import BaseModelTrainer
 from pycaret.classification import ClassificationExperiment
-import logging
 from dashboard import generate_classifier_explainer_dashboard
 
 LOG = logging.getLogger(__name__)
