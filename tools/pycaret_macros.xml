@@ -8,5 +8,19 @@
             <container type="docker">quay.io/goeckslab/galaxy-pycaret:@PYCARET_VERSION@</container>
         </requirements>
     </xml>
+    <xml name="macro_citations">
+        <citations>
+            <citation type="bibtex">
+                @Manual {PyCaret, 
+                    title = {PyCaret: An open source, low-code machine learning library in Python}, 
+                    author = {Moez Ali}, 
+                    year = {2020}, 
+                    month = {April}, 
+                    note = {PyCaret version 1.0}, 
+                    url = {https://www.pycaret.org
+                    }
+            </citation>
+        </citations>
+    </xml>
 
 </macros>
