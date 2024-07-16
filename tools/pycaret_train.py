@@ -2,6 +2,7 @@ import argparse
 import logging
 
 from pycaret_classification import ClassificationModelTrainer
+
 from pycaret_regression import RegressionModelTrainer
 
 logging.basicConfig(level=logging.DEBUG)
