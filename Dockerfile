@@ -9,8 +9,7 @@ RUN apt-get update && \
 
 # Install Python packages
 RUN pip install -U pip && \
-    pip install --no-cache-dir --no-compile 'git+https://github.com/goeckslab/smart-report.git@17df590f3ceb065add099f37b4874c85bd275014' && \
-    pip install --no-cache-dir --no-compile pycaret==${VERSION} && \
+    pip install --no-cache-dir --no-compile pycaret[models]==${VERSION} && \
     pip install --no-cache-dir --no-compile explainerdashboard
 
 # Clean up unnecessary packages
