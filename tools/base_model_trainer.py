@@ -86,7 +86,11 @@ class BaseModelTrainer:
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
-        self.best_model = self.exp.compare_models()
+        if hasattr(self, 'models') and self.models is not None:
+            self.best_model = self.exp.compare_models(
+                include=self.models)
+        else:
+            self.best_model = self.exp.compare_models()
         self.results = self.exp.pull()
 
     def save_model(self):
