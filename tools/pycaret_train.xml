@@ -7,6 +7,16 @@
     <command>
         <![CDATA[
         python $__tool_directory__/pycaret_train.py --input_file $input_file --target_col $target_feature --output_dir "`pwd`" --model_type $model_type
+        #if $model_type == "classification"
+            #if $classification_models
+                --models $classification_models
+            #end if
+        #end if
+        #if $model_type == "regression"
+            #if $regression_models
+                --models $regression_models
+            #end if
+        #end if
         #if $customize_defaults == "true"
                 #if $train_size
                 --train_size $train_size 
@@ -42,12 +52,12 @@
     <inputs>
         <param name="input_file" type="data" format="csv,tabular" label="Input Dataset (CSV or TSV)" />
        <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
-        <!-- <conditional name="model_selection"> -->
+        <conditional name="model_selection">
             <param name="model_type" type="select" label="Task">
                 <option value="classification">classification</option>
                 <option value="regression">regression</option>
             </param>
-            <!-- <when value="classification">
+            <when value="classification">
                 <param name="classification_models" type="select" multiple="true" label="Only Select Classification Models if you don't want to compare all models">
                     <option value="lr">Logistic Regression</option>
                     <option value="knn">K Neighbors Classifier</option>
@@ -98,7 +108,7 @@
                     <option value="catboost">CatBoost Regressor</option>
                 </param>
             </when>
-        </conditional> -->
+        </conditional>
         <conditional name="advanced_settings">
             <param name="customize_defaults" type="select" label="Customize Default Settings?" help="Select yes if you want to customize the default settings of the experiment.">
                 <option value="false" selected="true">No</option>
