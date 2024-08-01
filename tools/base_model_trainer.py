@@ -4,9 +4,9 @@ import os
 
 from feature_importance import FeatureImportanceAnalyzer
 
-from utils import get_html_template, get_html_closing
-
 import pandas as pd
+
+from utils import get_html_closing, get_html_template
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -113,12 +113,22 @@ class BaseModelTrainer:
 
         model_name = type(self.best_model).__name__
         excluded_params = ['html', 'log_experiment', 'system_log']
-        filtered_setup_params = {k: v for k, v in self.setup_params.items() if k not in excluded_params}
-        setup_params_table = pd.DataFrame(list(filtered_setup_params.items()), columns=['Parameter', 'Value'])
+        filtered_setup_params = {
+            k: v
+            for k, v in self.setup_params.items() if k not in excluded_params
+        }
+        setup_params_table = pd.DataFrame(
+            list(filtered_setup_params.items()),
+            columns=['Parameter', 'Value'])
 
-        best_model_params = pd.DataFrame(self.best_model.get_params().items(), columns=['Parameter', 'Value'])
-        best_model_params.to_csv(os.path.join(self.output_dir, 'best_model.csv'), index=False)
-        self.results.to_csv(os.path.join(self.output_dir, "comparison_results.csv"))
+        best_model_params = pd.DataFrame(
+            self.best_model.get_params().items(),
+            columns=['Parameter', 'Value'])
+        best_model_params.to_csv(
+            os.path.join(self.output_dir, 'best_model.csv'),
+            index=False)
+        self.results.to_csv(os.path.join(
+            self.output_dir, "comparison_results.csv"))
 
         plots_html = ""
         for plot_name, plot_path in self.plots.items():
@@ -126,31 +136,41 @@ class BaseModelTrainer:
             plots_html += f"""
             <div class="plot">
                 <h3>{plot_name.capitalize()}</h3>
-                <img src="data:image/png;base64,{encoded_image}" alt="{plot_name}">
+                <img src="data:image/png;base64,{encoded_image}"
+                    alt="{plot_name}">
             </div>
             """
 
-        analyzer = FeatureImportanceAnalyzer(data=self.data, target_col=self.target_col, task_type='classification', output_dir=self.output_dir)
+        analyzer = FeatureImportanceAnalyzer(
+            data=self.data,
+            target_col=self.target_col,
+            task_type='classification',
+            output_dir=self.output_dir)
         feature_importance_html = analyzer.run()
 
         html_content = f"""
         {get_html_template()}
             <h1>PyCaret Model Training Report</h1>
             <div class="tabs">
-                <div class="tab" onclick="openTab(event, 'summary')">Setup & Best Model</div>
-                <div class="tab" onclick="openTab(event, 'plots')">Best Model Plots</div>
-                <div class="tab" onclick="openTab(event, 'feature')">Feature Importance</div>
+                <div class="tab" onclick="openTab(event, 'summary')">
+                Setup & Best Model</div>
+                <div class="tab" onclick="openTab(event, 'plots')">
+                Best Model Plots</div>
+                <div class="tab" onclick="openTab(event, 'feature')">
+                Feature Importance</div>
             </div>
             <div id="summary" class="tab-content">
                 <h2>Setup Parameters</h2>
                 <table>
                     <tr><th>Parameter</th><th>Value</th></tr>
-                    {setup_params_table.to_html(index=False, header=False, classes='table')}
+                    {setup_params_table.to_html(
+                        index=False, header=False, classes='table')}
                 </table>
                 <h2>Best Model: {model_name}</h2>
                 <table>
                     <tr><th>Parameter</th><th>Value</th></tr>
-                    {best_model_params.to_html(index=False, header=False, classes='table')}
+                    {best_model_params.to_html(
+                        index=False, header=False, classes='table')}
                 </table>
                 <h2>Comparison Results</h2>
                 <table>
@@ -167,7 +187,8 @@ class BaseModelTrainer:
         {get_html_closing()}
         """
 
-        with open(os.path.join(self.output_dir, "comparison_result.html"), "w") as file:
+        with open(os.path.join(
+                self.output_dir, "comparison_result.html"), "w") as file:
             file.write(html_content)
 
     def save_dashboard(self):

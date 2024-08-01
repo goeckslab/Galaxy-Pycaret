@@ -2,12 +2,11 @@ import base64
 import logging
 import os
 
-import pandas as pd
-
 import matplotlib.pyplot as plt
 
-from pycaret.classification import ClassificationExperiment
+import pandas as pd
 
+from pycaret.classification import ClassificationExperiment
 from pycaret.regression import RegressionExperiment
 
 logging.basicConfig(level=logging.DEBUG)
@@ -15,7 +14,14 @@ LOG = logging.getLogger(__name__)
 
 
 class FeatureImportanceAnalyzer:
-    def __init__(self, task_type, output_dir, data_path=None, data=None,  target_col=None):
+    def __init__(
+            self,
+            task_type,
+            output_dir,
+            data_path=None,
+            data=None,
+            target_col=None):
+
         if data is not None:
             self.data = data
         else:
@@ -25,7 +31,9 @@ class FeatureImportanceAnalyzer:
             self.data = self.data.fillna(self.data.median(numeric_only=True))
         self.task_type = task_type
         self.target = self.data.columns[int(target_col) - 1]
-        self.exp = ClassificationExperiment() if task_type == 'classification' else RegressionExperiment()
+        self.exp = ClassificationExperiment() \
+            if task_type == 'classification' \
+            else RegressionExperiment()
         self.plots = {}
         self.output_dir = output_dir
 
@@ -57,10 +65,14 @@ class FeatureImportanceAnalyzer:
             'Importance': importances
         }).sort_values(by='Importance', ascending=False)
         plt.figure(figsize=(10, 6))
-        plt.barh(feature_importances['Feature'], feature_importances['Importance'])
+        plt.barh(
+            feature_importances['Feature'],
+            feature_importances['Importance'])
         plt.xlabel('Importance')
         plt.title('Feature Importance (Random Forest)')
-        plot_path = os.path.join(self.output_dir, 'tree_importance.png')
+        plot_path = os.path.join(
+            self.output_dir,
+            'tree_importance.png')
         plt.savefig(plot_path)
         plt.close()
         self.plots['tree_importance'] = plot_path
@@ -69,10 +81,13 @@ class FeatureImportanceAnalyzer:
         model = self.exp.create_model('lightgbm')
         import shap
         explainer = shap.Explainer(model)
-        shap_values = explainer.shap_values(self.data.drop(columns=[self.target]))
-        shap.summary_plot(shap_values, self.data.drop(columns=[self.target]), show=False)
+        shap_values = explainer.shap_values(
+            self.data.drop(columns=[self.target]))
+        shap.summary_plot(shap_values, self.data.drop(
+            columns=[self.target]), show=False)
         plt.title('Shap (LightGBM)')
-        plot_path = os.path.join(self.output_dir, 'shap_summary.png')
+        plot_path = os.path.join(
+            self.output_dir, 'shap_summary.png')
         plt.savefig(plot_path)
         plt.close()
         self.plots['shap_summary'] = plot_path
@@ -86,7 +101,7 @@ class FeatureImportanceAnalyzer:
     def encode_image_to_base64(self, img_path):
         with open(img_path, 'rb') as img_file:
             return base64.b64encode(img_file.read()).decode('utf-8')
-    
+
     def generate_html_report(self, coef_html):
         LOG.info("Generating HTML report")
 
@@ -96,12 +111,15 @@ class FeatureImportanceAnalyzer:
             encoded_image = self.encode_image_to_base64(plot_path)
             plots_html += f"""
             <div class="plot" id="{plot_name}">
-                <h2>Feature importance analysis from a trained Random Forest</h2>
-                <h3>{'Use gini impurity for calculating feature importance for classification' 
-                     'and Variance Reduction for regression'
-                  if plot_name == 'tree_importance' 
+                <h2>Feature importance analysis from a
+                    trained Random Forest</h2>
+                <h3>{'Use gini impurity for'
+                    'calculating feature importance for classification'
+                    'and Variance Reduction for regression'
+                  if plot_name == 'tree_importance'
                   else 'SHAP Summary from a trained lightgbm'}</h3>
-                <img src="data:image/png;base64,{encoded_image}" alt="{plot_name}">
+                <img src="data:image/png;base64,
+                {encoded_image}" alt="{plot_name}">
             </div>
             """
 
@@ -110,8 +128,10 @@ class FeatureImportanceAnalyzer:
             <h1>PyCaret Feature Importance Report</h1>
 
             <div id="coefficients" class="tabcontent">
-                <h2>Coefficients (based on a trained 
-                {'Logistic Regression' if self.task_type == 'classification' else 'Linear Regression'} Model)</h2>
+                <h2>Coefficients (based on a trained
+                {'Logistic Regression'
+                if self.task_type == 'classification'
+                else 'Linear Regression'} Model)</h2>
                 <div>{coef_html}</div>
             </div>
             {plots_html}
@@ -127,14 +147,26 @@ class FeatureImportanceAnalyzer:
         LOG.info("Feature importance analysis completed")
         return html_content
 
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Feature Importance Analysis")
-    parser.add_argument("--data_path", type=str, help="Path to the dataset")
-    parser.add_argument("--target_col", type=int, help="Index of the target column (1-based)")
-    parser.add_argument("--task_type", type=str, choices=["classification", "regression"], help="Task type: classification or regression")
-    parser.add_argument("--output_dir", type=str, help="Directory to save the outputs")
+    parser.add_argument(
+        "--data_path", type=str, help="Path to the dataset")
+    parser.add_argument(
+        "--target_col", type=int,
+        help="Index of the target column (1-based)")
+    parser.add_argument(
+        "--task_type", type=str,
+        choices=["classification", "regression"],
+        help="Task type: classification or regression")
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        help="Directory to save the outputs")
     args = parser.parse_args()
 
-    analyzer = FeatureImportanceAnalyzer(args.data_path, args.target_col, args.task_type, args.output_dir)
+    analyzer = FeatureImportanceAnalyzer(
+        args.data_path, args.target_col,
+        args.task_type, args.output_dir)
     analyzer.run()
