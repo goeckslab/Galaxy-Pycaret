@@ -20,10 +20,10 @@ class FeatureImportanceAnalyzer:
             self.data = data
         else:
             self.target_col = target_col
-            self.task_type = task_type
             self.data = pd.read_csv(data_path, sep=None, engine='python')
             self.data.columns = self.data.columns.str.replace('.', '_')
             self.data = self.data.fillna(self.data.median(numeric_only=True))
+        self.task_type = task_type
         self.target = self.data.columns[int(target_col) - 1]
         self.exp = ClassificationExperiment() if task_type == 'classification' else RegressionExperiment()
         self.plots = {}
@@ -96,21 +96,26 @@ class FeatureImportanceAnalyzer:
             encoded_image = self.encode_image_to_base64(plot_path)
             plots_html += f"""
             <div class="plot" id="{plot_name}">
-                <h3>{plot_name.replace('_', ' ').capitalize()}</h3>
+                <h2>Feature importance analysis from a trained Random Forest</h2>
+                <h3>{'Use gini impurity for calculating feature importance for classification' 
+                     'and Variance Reduction for regression'
+                  if plot_name == 'tree_importance' 
+                  else 'SHAP Summary from a trained lightgbm'}</h3>
                 <img src="data:image/png;base64,{encoded_image}" alt="{plot_name}">
             </div>
             """
 
         # Generate HTML content with tabs
         html_content = f"""
-                <h1>PyCaret Feature Importance Report</h1>
+            <h1>PyCaret Feature Importance Report</h1>
 
-                <div id="coefficients" class="tabcontent">
-                    <h2>Coefficients (based on a trained Logistic Regression Model)</h2>
-                    <div>{coef_html}</div>
-                </div>
-                {plots_html}
-            """
+            <div id="coefficients" class="tabcontent">
+                <h2>Coefficients (based on a trained 
+                {'Logistic Regression' if self.task_type == 'classification' else 'Linear Regression'} Model)</h2>
+                <div>{coef_html}</div>
+            </div>
+            {plots_html}
+        """
 
         return html_content
 

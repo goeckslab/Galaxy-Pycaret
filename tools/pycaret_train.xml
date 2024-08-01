@@ -1,5 +1,5 @@
 <tool id="pycaret_tool" name="PyCaret Model Comparison" version="@VERSION@" profile="@PROFILE@">
-    <description>Compare different machine learning models on a dataset using PyCaret.</description>
+    <description>Compare different machine learning models on a dataset using PyCaret. Do feature analysis using LR, Random Forest and LightGBM. </description>
     <macros>
         <import>pycaret_macros.xml</import>
     </macros>
@@ -174,7 +174,6 @@
     </tests>
     <help>
         This tool uses PyCaret to train and evaluate machine learning models.
-        Ensure that the Conda environment specified in the requirements is correctly set up.
     </help>
     <expand macro="macro_citations" />
 </tool>
