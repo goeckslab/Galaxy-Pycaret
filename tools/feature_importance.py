@@ -3,25 +3,31 @@ import logging
 import os
 
 import pandas as pd
+
 import matplotlib.pyplot as plt
+
 from pycaret.classification import ClassificationExperiment
+
 from pycaret.regression import RegressionExperiment
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
+
 class FeatureImportanceAnalyzer:
-    def __init__(self, data_path, target_col, task_type, output_dir):
-        self.data_path = data_path
-        self.target_col = target_col
-        self.task_type = task_type
-        self.output_dir = output_dir
-        self.data = pd.read_csv(data_path, sep=None, engine='python')
+    def __init__(self, task_type, output_dir, data_path=None, data=None,  target_col=None):
+        if data is not None:
+            self.data = data
+        else:
+            self.target_col = target_col
+            self.task_type = task_type
+            self.data = pd.read_csv(data_path, sep=None, engine='python')
+            self.data.columns = self.data.columns.str.replace('.', '_')
+            self.data = self.data.fillna(self.data.median(numeric_only=True))
         self.target = self.data.columns[int(target_col) - 1]
-        self.data.columns = self.data.columns.str.replace('.', '_')
-        self.data = self.data.fillna(self.data.median(numeric_only=True))
         self.exp = ClassificationExperiment() if task_type == 'classification' else RegressionExperiment()
         self.plots = {}
+        self.output_dir = output_dir
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
@@ -80,99 +86,41 @@ class FeatureImportanceAnalyzer:
     def encode_image_to_base64(self, img_path):
         with open(img_path, 'rb') as img_file:
             return base64.b64encode(img_file.read()).decode('utf-8')
-
-    def save_html_report(self, coef_html):
-        LOG.info("Saving HTML report")
+    
+    def generate_html_report(self, coef_html):
+        LOG.info("Generating HTML report")
 
         # Read and encode plot images
         plots_html = ""
         for plot_name, plot_path in self.plots.items():
             encoded_image = self.encode_image_to_base64(plot_path)
             plots_html += f"""
-            <div class="plot">
+            <div class="plot" id="{plot_name}">
                 <h3>{plot_name.replace('_', ' ').capitalize()}</h3>
                 <img src="data:image/png;base64,{encoded_image}" alt="{plot_name}">
             </div>
             """
 
-        # Generate HTML content
+        # Generate HTML content with tabs
         html_content = f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>PyCaret Feature Importance Report</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    margin: 0;
-                    padding: 20px;
-                    background-color: #f4f4f4;
-                }}
-                .container {{
-                    max-width: 800px;
-                    margin: auto;
-                    background: white;
-                    padding: 20px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                }}
-                h1 {{
-                    text-align: center;
-                    color: #333;
-                }}
-                h2 {{
-                    border-bottom: 2px solid #4CAF50;
-                    color: #4CAF50;
-                    padding-bottom: 5px;
-                }}
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                }}
-                table, th, td {{
-                    border: 1px solid #ddd;
-                }}
-                th, td {{
-                    padding: 8px;
-                    text-align: left;
-                }}
-                th {{
-                    background-color: #4CAF50;
-                    color: white;
-                }}
-                .plot {{
-                    text-align: center;
-                    margin: 20px 0;
-                }}
-                .plot img {{
-                    max-width: 100%;
-                    height: auto;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
                 <h1>PyCaret Feature Importance Report</h1>
-                <h2>Coefficients(based on a trained Logistic Regression Model)</h2>
-                <div>{coef_html}</div>
-                <h2>Plots</h2>
-                {plots_html}
-            </div>
-        </body>
-        </html>
-        """
 
-        with open(os.path.join(self.output_dir, "feature_importance_report.html"), "w") as file:
-            file.write(html_content)
+                <div id="coefficients" class="tabcontent">
+                    <h2>Coefficients (based on a trained Logistic Regression Model)</h2>
+                    <div>{coef_html}</div>
+                </div>
+                {plots_html}
+            """
+
+        return html_content
 
     def run(self):
         LOG.info("Running feature importance analysis")
         self.setup_pycaret()
         coef_html = self.generate_feature_importance()
-        self.save_html_report(coef_html)
+        html_content = self.generate_html_report(coef_html)
         LOG.info("Feature importance analysis completed")
+        return html_content
 
 if __name__ == "__main__":
     import argparse
