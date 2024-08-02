@@ -14,7 +14,14 @@ LOG = logging.getLogger(__name__)
 
 class BaseModelTrainer:
 
-    def __init__(self, input_file, target_col, output_dir, task_type, **kwargs):
+    def __init__(
+            self,
+            input_file,
+            target_col,
+            output_dir,
+            task_type,
+            **kwargs
+            ):
         self.exp = None  # This will be set in the subclass
         self.input_file = input_file
         self.target_col = target_col
@@ -39,9 +46,11 @@ class BaseModelTrainer:
         self.target = names[int(self.target_col)-1]
         if hasattr(self, 'missing_value_strategy'):
             if self.missing_value_strategy == 'mean':
-                self.data = self.data.fillna(self.data.mean(numeric_only=True))
+                self.data = self.data.fillna(
+                    self.data.mean(numeric_only=True))
             elif self.missing_value_strategy == 'median':
-                self.data = self.data.fillna(self.data.median(numeric_only=True))
+                self.data = self.data.fillna(
+                    self.data.median(numeric_only=True))
             elif self.missing_value_strategy == 'drop':
                 self.data = self.data.dropna()
         else:
