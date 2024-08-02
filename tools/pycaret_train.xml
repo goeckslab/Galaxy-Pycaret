@@ -156,7 +156,7 @@
             <output name="model" file="expected_model_classification" compare="sim_size"/>
             <output name="dashboard" file="expected_dashboard_classification.html" compare="sim_size" />
             <output name="comparison_result" file="expected_comparison_result_classification.html" compare="sim_size"> 
-                <extra_files type="csv" name="best_model.csv" value="expected_best_model_classification.csv" />
+                <extra_files type="file" name="best_model.csv" value="expected_best_model_classification.csv" />
             </output>
         </test>
         <test>
@@ -175,7 +175,7 @@
             <output name="model" file="expected_model_regression" compare="sim_size" />
             <output name="dashboard" file="expected_dashboard_regression.html" compare="sim_size" />
             <output name="comparison_result" file="expected_comparison_result_regression.html" compare="sim_size"> 
-                <extra_files type="csv" name="best_model.csv" value="expected_best_model_regression.csv" />
+                <extra_files type="file" name="best_model.csv" value="expected_best_model_regression.csv" />
             </output>
         </test>
     </tests>
