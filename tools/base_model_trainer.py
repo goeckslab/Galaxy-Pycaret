@@ -14,11 +14,12 @@ LOG = logging.getLogger(__name__)
 
 class BaseModelTrainer:
 
-    def __init__(self, input_file, target_col, output_dir, **kwargs):
+    def __init__(self, input_file, target_col, output_dir, task_type, **kwargs):
         self.exp = None  # This will be set in the subclass
         self.input_file = input_file
         self.target_col = target_col
         self.output_dir = output_dir
+        self.task_type = task_type
         self.data = None
         self.target = None
         self.best_model = None
@@ -33,9 +34,19 @@ class BaseModelTrainer:
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
         self.data = pd.read_csv(self.input_file, sep=None, engine='python')
+        self.data = self.data.apply(pd.to_numeric, errors='coerce')
         names = self.data.columns.to_list()
         self.target = names[int(self.target_col)-1]
-        self.data = self.data.fillna(self.data.median(numeric_only=True))
+        if hasattr(self, 'missing_value_strategy'):
+            if self.missing_value_strategy == 'mean':
+                self.data = self.data.fillna(self.data.mean(numeric_only=True))
+            elif self.missing_value_strategy == 'median':
+                self.data = self.data.fillna(self.data.median(numeric_only=True))
+            elif self.missing_value_strategy == 'drop':
+                self.data = self.data.dropna()
+        else:
+            # Default strategy if not specified
+            self.data = self.data.fillna(self.data.median(numeric_only=True))
         self.data.columns = self.data.columns.str.replace('.', '_')
 
     def setup_pycaret(self):
@@ -144,7 +155,7 @@ class BaseModelTrainer:
         analyzer = FeatureImportanceAnalyzer(
             data=self.data,
             target_col=self.target_col,
-            task_type='classification',
+            task_type=self.task_type,
             output_dir=self.output_dir)
         feature_importance_html = analyzer.run()
 

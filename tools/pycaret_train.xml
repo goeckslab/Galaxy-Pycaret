@@ -6,7 +6,7 @@
     <expand macro="python_requirements" />
     <command>
         <![CDATA[
-        python $__tool_directory__/pycaret_train.py --input_file $input_file --target_col $target_feature --output_dir "`pwd`" --model_type $model_type
+        python $__tool_directory__/pycaret_train.py --input_file $input_file --target_col $target_feature --output_dir "`pwd`" 
         #if $model_type == "classification"
             #if $classification_models
                 --models $classification_models
@@ -45,8 +45,11 @@
                 #if $fix_imbalance
                 --fix_imbalance 
                 #end if
-        #end if
-        
+        #end if 
+        --model_type $model_type &&
+
+        mkdir -p $comparison_result.extra_files_path &&
+        cp -r best_model.csv $comparison_result.extra_files_path    
         ]]>
     </command>
     <inputs>
@@ -152,10 +155,12 @@
             <param name="model_type" value="classification"/>
             <output name="model" file="expected_model_classification" compare="sim_size"/>
             <output name="dashboard" file="expected_dashboard_classification.html" compare="sim_size" />
-            <output name="comparison_result" file="expected_comparison_result_classification.html" compare="sim_size" />
+            <output name="comparison_result" file="expected_comparison_result_classification.html" compare="sim_size"> 
+                <extra_files type="csv" name="best_model.csv" value="expected_best_model_classification.csv" />
+            </output>
         </test>
         <test>
-            <param name="input_file" value="auto-mpg.csv"/>
+            <param name="input_file" value="auto-mpg.tsv"/>
             <param name="target_feature" value="1"/> 
             <param name="model_type" value="regression"/>
             <!-- <param name="customize_defaults" value="true"/>
@@ -169,7 +174,9 @@
             <param name="polynomial_features" value="true"/> -->
             <output name="model" file="expected_model_regression" compare="sim_size" />
             <output name="dashboard" file="expected_dashboard_regression.html" compare="sim_size" />
-            <output name="comparison_result" file="expected_comparison_result_regression.html" compare="sim_size" />
+            <output name="comparison_result" file="expected_comparison_result_regression.html" compare="sim_size"> 
+                <extra_files type="csv" name="best_model.csv" value="expected_best_model_regression.csv" />
+            </output>
         </test>
     </tests>
     <help>

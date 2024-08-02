@@ -24,6 +24,7 @@ class FeatureImportanceAnalyzer:
 
         if data is not None:
             self.data = data
+            LOG.info("Data loaded from memory")
         else:
             self.target_col = target_col
             self.data = pd.read_csv(data_path, sep=None, engine='python')
@@ -46,6 +47,8 @@ class FeatureImportanceAnalyzer:
             'log_experiment': False,
             'system_log': False
         }
+        LOG.info(self.task_type)
+        LOG.info(self.exp)
         self.exp.setup(self.data, **setup_params)
 
     def save_coefficients(self):

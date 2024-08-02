@@ -10,8 +10,8 @@ LOG = logging.getLogger(__name__)
 
 
 class ClassificationModelTrainer(BaseModelTrainer):
-    def __init__(self, input_file, target_col, output_dir, **kwargs):
-        super().__init__(input_file, target_col, output_dir, **kwargs)
+    def __init__(self, input_file, target_col, output_dir, task_type, **kwargs):
+        super().__init__(input_file, target_col, output_dir, task_type, **kwargs)
         self.exp = ClassificationExperiment()
 
     def save_dashboard(self):

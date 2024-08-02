@@ -85,13 +85,17 @@ def main():
         trainer = ClassificationModelTrainer(
             args.input_file,
             args.target_col,
-            args.output_dir, **model_kwargs)
+            args.output_dir,
+            args.model_type,
+            **model_kwargs)
     elif args.model_type == "regression":
         if "fix_imbalance" in model_kwargs:
             del model_kwargs["fix_imbalance"]
         trainer = RegressionModelTrainer(
             args.input_file,
-            args.target_col, args.output_dir,
+            args.target_col,
+            args.output_dir,
+            args.model_type,
             **model_kwargs)
     else:
         LOG.error("Invalid model type. Please choose \
