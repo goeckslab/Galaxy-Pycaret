@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 # Install Python packages
 RUN pip install -U pip && \
-    pip install --no-cache-dir --no-compile pycaret[models]==${VERSION} && \
+    pip install --no-cache-dir --no-compile pycaret[analysis,models]==${VERSION} && \
     pip install --no-cache-dir --no-compile explainerdashboard
 
 # Clean up unnecessary packages

@@ -2,7 +2,11 @@ import base64
 import logging
 import os
 
+from feature_importance import FeatureImportanceAnalyzer
+
 import pandas as pd
+
+from utils import get_html_closing, get_html_template
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -10,11 +14,19 @@ LOG = logging.getLogger(__name__)
 
 class BaseModelTrainer:
 
-    def __init__(self, input_file, target_col, output_dir, **kwargs):
+    def __init__(
+            self,
+            input_file,
+            target_col,
+            output_dir,
+            task_type,
+            **kwargs
+            ):
         self.exp = None  # This will be set in the subclass
         self.input_file = input_file
         self.target_col = target_col
         self.output_dir = output_dir
+        self.task_type = task_type
         self.data = None
         self.target = None
         self.best_model = None
@@ -29,9 +41,21 @@ class BaseModelTrainer:
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
         self.data = pd.read_csv(self.input_file, sep=None, engine='python')
+        self.data = self.data.apply(pd.to_numeric, errors='coerce')
         names = self.data.columns.to_list()
         self.target = names[int(self.target_col)-1]
-        self.data = self.data.fillna(self.data.median(numeric_only=True))
+        if hasattr(self, 'missing_value_strategy'):
+            if self.missing_value_strategy == 'mean':
+                self.data = self.data.fillna(
+                    self.data.mean(numeric_only=True))
+            elif self.missing_value_strategy == 'median':
+                self.data = self.data.fillna(
+                    self.data.median(numeric_only=True))
+            elif self.missing_value_strategy == 'drop':
+                self.data = self.data.dropna()
+        else:
+            # Default strategy if not specified
+            self.data = self.data.fillna(self.data.median(numeric_only=True))
         self.data.columns = self.data.columns.str.replace('.', '_')
 
     def setup_pycaret(self):
@@ -116,113 +140,71 @@ class BaseModelTrainer:
         setup_params_table = pd.DataFrame(
             list(filtered_setup_params.items()),
             columns=['Parameter', 'Value'])
-        # Save model summary
+
         best_model_params = pd.DataFrame(
             self.best_model.get_params().items(),
             columns=['Parameter', 'Value'])
         best_model_params.to_csv(
             os.path.join(self.output_dir, 'best_model.csv'),
             index=False)
-
-        # Save comparison results
         self.results.to_csv(os.path.join(
             self.output_dir, "comparison_results.csv"))
 
-        # Read and encode plot images
         plots_html = ""
         for plot_name, plot_path in self.plots.items():
             encoded_image = self.encode_image_to_base64(plot_path)
             plots_html += f"""
             <div class="plot">
                 <h3>{plot_name.capitalize()}</h3>
-                <img src="data:image/png;base64,
-                {encoded_image}" alt="{plot_name}">
+                <img src="data:image/png;base64,{encoded_image}"
+                    alt="{plot_name}">
             </div>
             """
 
-        # Generate HTML content
+        analyzer = FeatureImportanceAnalyzer(
+            data=self.data,
+            target_col=self.target_col,
+            task_type=self.task_type,
+            output_dir=self.output_dir)
+        feature_importance_html = analyzer.run()
+
         html_content = f"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width,
-            initial-scale=1.0">
-            <title>PyCaret Model Training Report</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    margin: 0;
-                    padding: 20px;
-                    background-color: #f4f4f4;
-                }}
-                .container {{
-                    max-width: 800px;
-                    margin: auto;
-                    background: white;
-                    padding: 20px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                }}
-                h1 {{
-                    text-align: center;
-                    color: #333;
-                }}
-                h2 {{
-                    border-bottom: 2px solid #4CAF50;
-                    color: #4CAF50;
-                    padding-bottom: 5px;
-                }}
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                }}
-                table, th, td {{
-                    border: 1px solid #ddd;
-                }}
-                th, td {{
-                    padding: 8px;
-                    text-align: left;
-                }}
-                th {{
-                    background-color: #4CAF50;
-                    color: white;
-                }}
-                .plot {{
-                    text-align: center;
-                    margin: 20px 0;
-                }}
-                .plot img {{
-                    max-width: 100%;
-                    height: auto;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>PyCaret Model Training Report</h1>
+        {get_html_template()}
+            <h1>PyCaret Model Training Report</h1>
+            <div class="tabs">
+                <div class="tab" onclick="openTab(event, 'summary')">
+                Setup & Best Model</div>
+                <div class="tab" onclick="openTab(event, 'plots')">
+                Best Model Plots</div>
+                <div class="tab" onclick="openTab(event, 'feature')">
+                Feature Importance</div>
+            </div>
+            <div id="summary" class="tab-content">
                 <h2>Setup Parameters</h2>
                 <table>
                     <tr><th>Parameter</th><th>Value</th></tr>
-                    {setup_params_table.to_html(index=False,
-                                            header=False, classes='table')}
+                    {setup_params_table.to_html(
+                        index=False, header=False, classes='table')}
                 </table>
                 <h2>Best Model: {model_name}</h2>
                 <table>
                     <tr><th>Parameter</th><th>Value</th></tr>
-                    {best_model_params.to_html(index=False,
-                                            header=False, classes='table')}
+                    {best_model_params.to_html(
+                        index=False, header=False, classes='table')}
                 </table>
                 <h2>Comparison Results</h2>
                 <table>
-                    {self.results.to_html(index=False,
-                                        classes='table')}
+                    {self.results.to_html(index=False, classes='table')}
                 </table>
-                <h2>Plots</h2>
+            </div>
+            <div id="plots" class="tab-content">
+                <h2>Best Model Plots</h2>
                 {plots_html}
             </div>
-        </body>
-        </html>
+            <div id="feature" class="tab-content">
+                {feature_importance_html}
+            </div>
+        {get_html_closing()}
         """
 
         with open(os.path.join(
