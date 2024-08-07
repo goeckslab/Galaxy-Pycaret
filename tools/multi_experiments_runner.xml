@@ -1,0 +1,108 @@
+<tool id="multi_experiment_runner" name="Multi Experiment Runner" version="@VERSION@" profile="@PROFILE@">
+    <description>Run multiple experiments on a selected model and generate a report.</description>
+    <macros>
+        <import>pycaret_macros.xml</import>
+    </macros>
+    <expand macro="python_requirements" />
+    <command>
+        <![CDATA[
+        python $__tool_directory__/multi_experiments_runner.py --data_file $data --target_column $target_column --model_name $model_name --task_type $task_type --n_experiments $n_experiments --output_dir "`pwd`" 
+        ]]>
+    </command>
+
+    <inputs>
+        <param name="data" type="data" format="tabular" label="Input Data File" />
+        <param name="target_column" multiple="false" type="data_column" use_header_names="true" data_ref="data" label="Target Column Name" />
+        <!-- <param name="model_name" type="select" label="Model Name">
+            <option value="lr">Logistic Regression</option>
+            <option value="knn">K Neighbors Classifier</option>
+            <option value="nb">Naive Bayes</option>
+            <option value="dt">Decision Tree Classifier</option>
+            <option value="svm">SVM - Linear Kernel</option>
+            <option value="rf">Random Forest Classifier</option>
+        </param>
+        <param name="task_type" type="select" label="Task Type">
+            <option value="classification">Classification</option>
+            <option value="regression">Regression</option>
+        </param> -->
+        <conditional name="model_selection">
+            <param name="task_type" type="select" label="Task">
+                <option value="classification">classification</option>
+                <option value="regression">regression</option>
+            </param>
+            <when value="classification">
+                <conditional name="classification_models">
+                    <param name="model_name" type="select" multiple="false" label="Select Classification Models">
+                        <option value="lr">Logistic Regression</option>
+                        <option value="knn">K Neighbors Classifier</option>
+                        <option value="nb">Naive Bayes</option>
+                        <option value="dt">Decision Tree Classifier</option>
+                        <option value="svm">SVM - Linear Kernel</option>
+                        <option value="rbfsvm">SVM - Radial Kernel</option>
+                        <option value="gpc">Gaussian Process Classifier</option>
+                        <option value="mlp">MLP Classifier</option>
+                        <option value="ridge">Ridge Classifier</option>
+                        <option value="rf">Random Forest Classifier</option>
+                        <option value="qda">Quadratic Discriminant Analysis</option>
+                        <option value="ada">Ada Boost Classifier</option>
+                        <option value="gbc">Gradient Boosting Classifier</option>
+                        <option value="lda">Linear Discriminant Analysis</option>
+                        <option value="et">Extra Trees Classifier</option>
+                        <option value="xgboost">Extreme Gradient Boosting</option>
+                        <option value="lightgbm">Light Gradient Boosting Machine</option>
+                        <option value="catboost">CatBoost Classifier</option>
+                    </param>
+                    <when value="rf">
+                        <param name="bootstrap" type="boolean" label="Bootstrap" value="true" />
+                        <param name="max_depth" type="integer" label="max_depth(default=None)"  optional="true"/>
+                        <conditional name="max_features_num">
+                            <param name="max_features" type="select" label="max_features">
+                                <option value="num">a number</option>
+                                <option value="sqrt" selected="true">sqrt</option>
+                                <option value="log2">log2</option>
+                            </param>
+                            <when value="num">
+                                <param name="max_features_num" type="integer" label="max_features_num" />
+                            </when>
+                        </conditional>
+                        <param name="min_samples_leaf" type="integer" label="min_samples_leaf" value="1" optional="true" />
+                        <param name="min_samples_split" type="integer" label="min_samples_split" value="2"  optional="true" />
+                        <param name="n_estimators" type="integer" label="n_estimators" value="100" optional="true" />
+                    </when>
+                </conditional>
+                </when>
+                <param name="classification_models" type="select" multiple="true" label="Only Select Classification Models if you don't want to compare all models">
+                    <option value="lr">Logistic Regression</option>
+                    <option value="knn">K Neighbors Classifier</option>
+                    <option value="nb">Naive Bayes</option>
+                    <option value="dt">Decision Tree Classifier</option>
+                    <option value="svm">SVM - Linear Kernel</option>
+                    <option value="rbfsvm">SVM - Radial Kernel</option>
+                    <option value="gpc">Gaussian Process Classifier</option>
+                    <option value="mlp">MLP Classifier</option>
+                    <option value="ridge">Ridge Classifier</option>
+                    <option value="rf">Random Forest Classifier</option>
+                    <option value="qda">Quadratic Discriminant Analysis</option>
+                    <option value="ada">Ada Boost Classifier</option>
+                    <option value="gbc">Gradient Boosting Classifier</option>
+                    <option value="lda">Linear Discriminant Analysis</option>
+                    <option value="et">Extra Trees Classifier</option>
+                    <option value="xgboost">Extreme Gradient Boosting</option>
+                    <option value="lightgbm">Light Gradient Boosting Machine</option>
+                    <option value="catboost">CatBoost Classifier</option>
+                </param>
+        </conditional>
+        <param name="n_experiments" type="integer" value="10" label="Number of Experiments" />
+        <param name="custom_params" type="text" label="Custom Hyperparameters (JSON format)" optional="true" />
+    </inputs>
+
+    <outputs>
+        <data name="output_report" format="html" from_work_dir="result.html" label="Experiment Report" />
+        <data name="output_csv" format="csv" from_work_dir="result.csv" label="Experiment Results CSV" />
+    </outputs>
+    <expand macro="macro_citations" />
+    <help>
+        This tool uses PyCaret to train and evaluate machine learning models.
+    </help>
+    <expand macro="macro_citations" />
+</tool>
