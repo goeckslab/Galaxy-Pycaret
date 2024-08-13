@@ -214,6 +214,9 @@ class BaseModelTrainer:
     def save_dashboard(self):
         raise NotImplementedError("Subclasses should implement this method")
 
+    def generate_plots_explainer_basic(self):
+        pass
+    
     def run(self):
         self.load_data()
         self.setup_pycaret()
@@ -221,4 +224,4 @@ class BaseModelTrainer:
         self.save_model()
         self.generate_plots()
         self.save_html_report()
-        self.save_dashboard()
+        # self.save_dashboard()

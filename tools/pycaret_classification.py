@@ -41,3 +41,82 @@ class ClassificationModelTrainer(BaseModelTrainer):
             except Exception as e:
                 LOG.error(f"Error generating plot {plot_name}: {e}")
                 continue
+    
+    def generate_plots_explainer(self):
+        LOG.info("Generating and saving plots from explainer")
+        
+        from explainerdashboard import ClassifierExplainer
+        from pycaret.classification import get_config
+        
+        X_test = get_config('X_test')
+        y_test = get_config('y_test')
+
+        explainer = ClassifierExplainer(self.best_model, X_test, y_test)
+        plots_explainer_html = ""
+        
+        try:
+            fig_importance = explainer.plot_importances()
+            fig_html = fig_importance.to_html(full_html=False, include_plotlyjs="cdn")
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot importance(mean shap): {e}")
+        
+        try:
+            fig_importance = explainer.plot_importances(type="permutation")
+            fig_html = fig_importance.to_html(full_html=False, include_plotlyjs="cdn")
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot importance(permutation): {e}")
+        
+        try:
+            fig_shap = explainer.plot_shap_summary()
+            fig_html = fig_shap.to_html(full_html=False, include_plotlyjs=False)
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot shap: {e}")
+        
+        try:
+            fig_contributions = explainer.plot_contributions()
+            fig_html = fig_contributions.to_html(full_html=False, include_plotlyjs=False)
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot contributions: {e}")
+        
+        try:
+            fig_dependence = explainer.plot_dependencies()
+            fig_html = fig_dependence.to_html(full_html=False, include_plotlyjs=False)  
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot dependencies: {e}")
+
+        try:
+            fig_pdp = explainer.plot_pdp()
+            fig_html = fig_pdp.to_html(full_html=False, include_plotlyjs=False)
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot pdp: {e}")
+        
+        try:
+            fig_interaction = explainer.plot_interactions()
+            fig_html = fig_interaction.to_html(full_html=False, include_plotlyjs=False)
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot interactions: {e}")
+        
+        try:
+            fig_interactions_importance = explainer.plot_interactions_importance()
+            fig_html = fig_interactions_importance.to_html(full_html=False, include_plotlyjs=False)
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot interactions importance: {e}")
+        
+        try:
+            fig_interactions_detailed = explainer.plot_interactions_detailed
+            fig_html = fig_interactions_detailed.to_html(full_html=False, include_plotlyjs=False)
+            plots_explainer_html += fig_html
+        except Exception as e:
+            LOG.error(f"Error generating plot interactions detailed: {e}")
+
+        
+
+
