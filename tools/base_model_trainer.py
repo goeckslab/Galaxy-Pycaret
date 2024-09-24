@@ -31,6 +31,7 @@ class BaseModelTrainer:
         self.target = None
         self.best_model = None
         self.results = None
+        self.features_name = None
         self.plots = {}
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -43,7 +44,9 @@ class BaseModelTrainer:
         self.data = pd.read_csv(self.input_file, sep=None, engine='python')
         self.data = self.data.apply(pd.to_numeric, errors='coerce')
         names = self.data.columns.to_list()
-        self.target = names[int(self.target_col)-1]
+        target_index = int(self.target_col)-1
+        self.target = names[target_index]
+        self.features_name = [name for i, name in enumerate(names) if i != target_index]
         if hasattr(self, 'missing_value_strategy'):
             if self.missing_value_strategy == 'mean':
                 self.data = self.data.fillna(
@@ -128,7 +131,7 @@ class BaseModelTrainer:
         with open(img_path, 'rb') as img_file:
             return base64.b64encode(img_file.read()).decode('utf-8')
 
-    def save_html_report(self):
+    def save_html_report(self, explainer_html):
         LOG.info("Saving HTML report")
 
         model_name = type(self.best_model).__name__
@@ -178,6 +181,9 @@ class BaseModelTrainer:
                 Best Model Plots</div>
                 <div class="tab" onclick="openTab(event, 'feature')">
                 Feature Importance</div>
+                <div class="tab" onclick="openTab(event, 'explainer')">
+                Explainer
+                </div>
             </div>
             <div id="summary" class="tab-content">
                 <h2>Setup Parameters</h2>
@@ -204,6 +210,9 @@ class BaseModelTrainer:
             <div id="feature" class="tab-content">
                 {feature_importance_html}
             </div>
+            <div id="explainer" class="tab-content">
+                {explainer_html}
+            </div>
         {get_html_closing()}
         """
 
@@ -214,8 +223,8 @@ class BaseModelTrainer:
     def save_dashboard(self):
         raise NotImplementedError("Subclasses should implement this method")
 
-    def generate_plots_explainer_basic(self):
-        pass
+    def generate_plots_explainer(self):
+        raise NotImplementedError("Subclasses should implement this method")
     
     def run(self):
         self.load_data()
@@ -223,5 +232,6 @@ class BaseModelTrainer:
         self.train_model()
         self.save_model()
         self.generate_plots()
-        self.save_html_report()
+        explainer_html = self.generate_plots_explainer()
+        self.save_html_report(explainer_html)
         # self.save_dashboard()
