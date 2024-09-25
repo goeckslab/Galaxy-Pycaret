@@ -111,21 +111,30 @@ def get_html_closing():
     </html>
     """
 
+
 def customize_figure_layout(fig, margin_dict=None):
     """
     Update the layout of a Plotly figure to reduce margins.
-    
+
     Parameters:
         fig (plotly.graph_objects.Figure): The Plotly figure to customize.
         margin_dict (dict, optional): A dictionary specifying margin sizes.
             Example: {'l': 10, 'r': 10, 't': 10, 'b': 10}
-    
+
     Returns:
         plotly.graph_objects.Figure: The updated Plotly figure.
     """
     if margin_dict is None:
         # Set default smaller margins
         margin_dict = {'l': 40, 'r': 40, 't': 40, 'b': 40}
-    
+
     fig.update_layout(margin=margin_dict)
     return fig
+
+
+def add_plot_to_html(fig, include_plotlyjs=True):
+    custom_margin = {'l': 40, 'r': 40, 't': 40, 'b': 40}
+    fig = customize_figure_layout(fig, margin_dict=custom_margin)
+    return fig.to_html(full_html=False,
+                       default_height=350,
+                       include_plotlyjs="cdn" if include_plotlyjs else False)

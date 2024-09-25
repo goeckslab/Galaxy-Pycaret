@@ -6,6 +6,8 @@ from feature_importance import FeatureImportanceAnalyzer
 
 import pandas as pd
 
+# from sklearn.metrics import auc, precision_recall_curve
+
 from utils import get_html_closing, get_html_template
 
 logging.basicConfig(level=logging.DEBUG)
@@ -33,6 +35,9 @@ class BaseModelTrainer:
         self.results = None
         self.features_name = None
         self.plots = {}
+        self.expaliner = None
+        self.plots_explainer_html = None
+        self.trees = []
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.setup_params = {}
@@ -46,7 +51,9 @@ class BaseModelTrainer:
         names = self.data.columns.to_list()
         target_index = int(self.target_col)-1
         self.target = names[target_index]
-        self.features_name = [name for i, name in enumerate(names) if i != target_index]
+        self.features_name = [name
+                              for i, name in enumerate(names)
+                              if i != target_index]
         if hasattr(self, 'missing_value_strategy'):
             if self.missing_value_strategy == 'mean':
                 self.data = self.data.fillna(
@@ -113,12 +120,26 @@ class BaseModelTrainer:
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
+        # all_models = None
         if hasattr(self, 'models') and self.models is not None:
             self.best_model = self.exp.compare_models(
                 include=self.models)
         else:
             self.best_model = self.exp.compare_models()
+        # self.best_model = all_models[0]
         self.results = self.exp.pull()
+
+        # pr_auc_list = []
+        # for model in all_models:
+        #     y_pred_prob = self.exp.predict_model(model)
+        #     precision, recall, _ = precision_recall_curve(
+        #         y_pred_prob['actual'], y_pred_prob['Score'])
+
+        #     pr_auc = auc(recall, precision)
+        #     pr_auc_list.append(pr_auc)
+
+        # self.results['PR-AUC'] = pr_auc_list
+        # self.results.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
 
     def save_model(self):
         LOG.info("Saving the model")
@@ -131,7 +152,7 @@ class BaseModelTrainer:
         with open(img_path, 'rb') as img_file:
             return base64.b64encode(img_file.read()).decode('utf-8')
 
-    def save_html_report(self, explainer_html):
+    def save_html_report(self):
         LOG.info("Saving HTML report")
 
         model_name = type(self.best_model).__name__
@@ -163,6 +184,18 @@ class BaseModelTrainer:
                     alt="{plot_name}">
             </div>
             """
+
+        tree_plots = ""
+        for i, tree in enumerate(self.trees):
+            if tree:
+                tree_plots += f"""
+                <div class="plot">
+                    <h3>Tree {i+1}</h3>
+                    <img src="data:image/png;base64,
+                    {tree}"
+                    alt="tree {i+1}">
+                </div>
+                """
 
         analyzer = FeatureImportanceAnalyzer(
             data=self.data,
@@ -211,7 +244,8 @@ class BaseModelTrainer:
                 {feature_importance_html}
             </div>
             <div id="explainer" class="tab-content">
-                {explainer_html}
+                {self.plots_explainer_html}
+                {tree_plots}
             </div>
         {get_html_closing()}
         """
@@ -225,13 +259,45 @@ class BaseModelTrainer:
 
     def generate_plots_explainer(self):
         raise NotImplementedError("Subclasses should implement this method")
-    
+
+    # not working now
+    def generate_tree_plots(self):
+        from sklearn.ensemble import RandomForestClassifier, \
+            RandomForestRegressor
+        from xgboost import XGBClassifier, XGBRegressor
+        from explainerdashboard.explainers import RandomForestExplainer
+
+        LOG.info("Generating tree plots")
+        X_test = self.exp.X_test_transformed.copy()
+        y_test = self.exp.y_test_transformed
+
+        is_rf = isinstance(self.best_model, RandomForestClassifier) or \
+            isinstance(self.best_model, RandomForestRegressor)
+
+        is_xgb = isinstance(self.best_model, XGBClassifier) or \
+            isinstance(self.best_model, XGBRegressor)
+
+        try:
+            if is_rf:
+                num_trees = self.best_model.n_estimators
+            if is_xgb:
+                num_trees = len(self.best_model.get_booster().get_dump())
+            explainer = RandomForestExplainer(self.best_model, X_test, y_test)
+            for i in range(num_trees):
+                fig = explainer.decisiontree_encoded(tree_idx=i, index=0)
+                LOG.info(f"Tree {i+1}")
+                LOG.info(fig)
+                self.trees.append(fig)
+        except Exception as e:
+            LOG.error(f"Error generating tree plots: {e}")
+
     def run(self):
         self.load_data()
         self.setup_pycaret()
         self.train_model()
         self.save_model()
         self.generate_plots()
-        explainer_html = self.generate_plots_explainer()
-        self.save_html_report(explainer_html)
+        self.generate_plots_explainer()
+        self.generate_tree_plots()
+        self.save_html_report()
         # self.save_dashboard()
