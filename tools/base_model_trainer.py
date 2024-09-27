@@ -22,7 +22,7 @@ class BaseModelTrainer:
             target_col,
             output_dir,
             task_type,
-            random_seed=42,
+            random_seed,
             **kwargs
             ):
         self.exp = None  # This will be set in the subclass
