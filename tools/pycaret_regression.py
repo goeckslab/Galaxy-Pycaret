@@ -21,7 +21,12 @@ class RegressionModelTrainer(BaseModelTrainer):
             random_seed,
             **kwargs):
         super().__init__(
-            input_file, target_col, output_dir, task_type, random_seed, **kwargs)
+            input_file,
+            target_col,
+            output_dir,
+            task_type,
+            random_seed,
+            **kwargs)
         self.exp = RegressionExperiment()
 
     def save_dashboard(self):

@@ -55,7 +55,7 @@ def main():
     parser.add_argument("--models", nargs='+',
                         default=None,
                         help="Selected models for training")
-    parser.add_argument("--random_seed", type=int, 
+    parser.add_argument("--random_seed", type=int,
                         default=42,
                         help="Random seed for PyCaret setup")
 
