@@ -6,7 +6,7 @@
     <expand macro="python_requirements" />
     <command>
         <![CDATA[
-        python $__tool_directory__/pycaret_train.py --input_file $input_file --target_col $target_feature --output_dir "`pwd`" 
+        python $__tool_directory__/pycaret_train.py --input_file $input_file --target_col $target_feature --output_dir "`pwd`" --random_seed $random_seed
         #if $model_type == "classification"
             #if $classification_models
                 --models $classification_models
@@ -112,6 +112,7 @@
                 </param>
             </when>
         </conditional>
+        <param name="random_seed" type="integer" value="42" label="Random Seed" help="Random seed for reproducibility." />
         <conditional name="advanced_settings">
             <param name="customize_defaults" type="select" label="Customize Default Settings?" help="Select yes if you want to customize the default settings of the experiment.">
                 <option value="false" selected="true">No</option>
