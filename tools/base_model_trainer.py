@@ -22,6 +22,7 @@ class BaseModelTrainer:
             target_col,
             output_dir,
             task_type,
+            random_seed,
             **kwargs
             ):
         self.exp = None  # This will be set in the subclass
@@ -29,6 +30,7 @@ class BaseModelTrainer:
         self.target_col = target_col
         self.output_dir = output_dir
         self.task_type = task_type
+        self.random_seed = random_seed
         self.data = None
         self.target = None
         self.best_model = None
@@ -72,7 +74,7 @@ class BaseModelTrainer:
         LOG.info("Initializing PyCaret")
         self.setup_params = {
             'target': self.target,
-            'session_id': 123,
+            'session_id': self.random_seed,
             'html': True,
             'log_experiment': False,
             'system_log': False

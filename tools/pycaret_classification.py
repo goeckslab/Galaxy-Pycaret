@@ -18,9 +18,15 @@ class ClassificationModelTrainer(BaseModelTrainer):
             target_col,
             output_dir,
             task_type,
+            random_seed,
             **kwargs):
         super().__init__(
-            input_file, target_col, output_dir, task_type, **kwargs)
+            input_file,
+            target_col,
+            output_dir,
+            task_type,
+            random_seed,
+            **kwargs)
         self.exp = ClassificationExperiment()
 
     def save_dashboard(self):
