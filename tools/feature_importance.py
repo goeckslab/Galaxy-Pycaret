@@ -51,14 +51,14 @@ class FeatureImportanceAnalyzer:
         LOG.info(self.exp)
         self.exp.setup(self.data, **setup_params)
 
-    def save_coefficients(self):
-        model = self.exp.create_model('lr')
-        coef_df = pd.DataFrame({
-            'Feature': self.data.columns.drop(self.target),
-            'Coefficient': model.coef_[0]
-        })
-        coef_html = coef_df.to_html(index=False)
-        return coef_html
+    # def save_coefficients(self):
+    #     model = self.exp.create_model('lr')
+    #     coef_df = pd.DataFrame({
+    #         'Feature': self.data.columns.drop(self.target),
+    #         'Coefficient': model.coef_[0]
+    #     })
+    #     coef_html = coef_df.to_html(index=False)
+    #     return coef_html
 
     def save_tree_importance(self):
         model = self.exp.create_model('rf')
@@ -96,16 +96,15 @@ class FeatureImportanceAnalyzer:
         self.plots['shap_summary'] = plot_path
 
     def generate_feature_importance(self):
-        coef_html = self.save_coefficients()
+        # coef_html = self.save_coefficients()
         self.save_tree_importance()
         self.save_shap_values()
-        return coef_html
 
     def encode_image_to_base64(self, img_path):
         with open(img_path, 'rb') as img_file:
             return base64.b64encode(img_file.read()).decode('utf-8')
 
-    def generate_html_report(self, coef_html):
+    def generate_html_report(self):
         LOG.info("Generating HTML report")
 
         # Read and encode plot images
@@ -114,13 +113,15 @@ class FeatureImportanceAnalyzer:
             encoded_image = self.encode_image_to_base64(plot_path)
             plots_html += f"""
             <div class="plot" id="{plot_name}">
-                <h2>Feature importance analysis from a
-                    trained Random Forest</h2>
+                <h2>{'Feature importance analysis from a'
+                    'trained Random Forest'
+                    if plot_name == 'tree_importance'
+                    else 'SHAP Summary from a trained lightgbm'}</h2>
                 <h3>{'Use gini impurity for'
                     'calculating feature importance for classification'
                     'and Variance Reduction for regression'
                   if plot_name == 'tree_importance'
-                  else 'SHAP Summary from a trained lightgbm'}</h3>
+                  else ''}</h3>
                 <img src="data:image/png;base64,
                 {encoded_image}" alt="{plot_name}">
             </div>
@@ -129,14 +130,6 @@ class FeatureImportanceAnalyzer:
         # Generate HTML content with tabs
         html_content = f"""
             <h1>PyCaret Feature Importance Report</h1>
-
-            <div id="coefficients" class="tabcontent">
-                <h2>Coefficients (based on a trained
-                {'Logistic Regression'
-                if self.task_type == 'classification'
-                else 'Linear Regression'} Model)</h2>
-                <div>{coef_html}</div>
-            </div>
             {plots_html}
         """
 
@@ -145,8 +138,8 @@ class FeatureImportanceAnalyzer:
     def run(self):
         LOG.info("Running feature importance analysis")
         self.setup_pycaret()
-        coef_html = self.generate_feature_importance()
-        html_content = self.generate_html_report(coef_html)
+        self.generate_feature_importance()
+        html_content = self.generate_html_report()
         LOG.info("Feature importance analysis completed")
         return html_content
 
