@@ -6,7 +6,7 @@ from dashboard import generate_regression_explainer_dashboard
 
 from pycaret.regression import RegressionExperiment
 
-from utils import add_plot_to_html
+from utils import add_hr_to_html, add_plot_to_html
 
 LOG = logging.getLogger(__name__)
 
@@ -64,6 +64,7 @@ class RegressionModelTrainer(BaseModelTrainer):
         try:
             fig_importance = explainer.plot_importances()
             plots_explainer_html += add_plot_to_html(fig_importance)
+            plots_explainer_html += add_hr_to_html()
         except Exception as e:
             LOG.error(f"Error generating plot importance: {e}")
 
@@ -73,6 +74,7 @@ class RegressionModelTrainer(BaseModelTrainer):
                     kind="permutation")
             plots_explainer_html += add_plot_to_html(
                 fig_importance_permutation)
+            plots_explainer_html += add_hr_to_html()
         except Exception as e:
             LOG.error(f"Error generating plot importance permutation: {e}")
 
@@ -80,6 +82,7 @@ class RegressionModelTrainer(BaseModelTrainer):
             for feature in self.features_name:
                 fig_shap = explainer.plot_pdp(feature)
                 plots_explainer_html += add_plot_to_html(fig_shap)
+                plots_explainer_html += add_hr_to_html()
         except Exception as e:
             LOG.error(f"Error generating plot shap dependence: {e}")
 
@@ -97,6 +100,7 @@ class RegressionModelTrainer(BaseModelTrainer):
                         col=feature)
                 plots_explainer_html += add_plot_to_html(
                     fig_interactions_importance)
+                plots_explainer_html += add_hr_to_html()
         except Exception as e:
             LOG.error(f"Error generating plot shap summary: {e}")
 
@@ -104,12 +108,14 @@ class RegressionModelTrainer(BaseModelTrainer):
         try:
             fig_pred_actual = explainer.plot_predicted_vs_actual()
             plots_explainer_html += add_plot_to_html(fig_pred_actual)
+            plots_explainer_html += add_hr_to_html()
         except Exception as e:
             LOG.error(f"Error generating plot prediction vs actual: {e}")
 
         try:
             fig_residuals = explainer.plot_residuals()
             plots_explainer_html += add_plot_to_html(fig_residuals)
+            plots_explainer_html += add_hr_to_html()
         except Exception as e:
             LOG.error(f"Error generating plot residuals: {e}")
 
@@ -119,6 +125,7 @@ class RegressionModelTrainer(BaseModelTrainer):
                     explainer.plot_residuals_vs_feature(feature)
                 plots_explainer_html += add_plot_to_html(
                     fig_residuals_vs_feature)
+                plots_explainer_html += add_hr_to_html()
         except Exception as e:
             LOG.error(f"Error generating plot residuals vs feature: {e}")
 

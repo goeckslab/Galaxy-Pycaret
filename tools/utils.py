@@ -1,3 +1,15 @@
+import logging
+
+import numpy as np
+
+from sklearn.metrics import auc, precision_recall_curve
+from sklearn.preprocessing import label_binarize
+
+
+logging.basicConfig(level=logging.DEBUG)
+LOG = logging.getLogger(__name__)
+
+
 def get_html_template():
     return """
     <html>
@@ -133,8 +145,52 @@ def customize_figure_layout(fig, margin_dict=None):
 
 
 def add_plot_to_html(fig, include_plotlyjs=True):
-    custom_margin = {'l': 40, 'r': 40, 't': 40, 'b': 40}
+    custom_margin = {'l': 40, 'r': 40, 't': 60, 'b': 60}
     fig = customize_figure_layout(fig, margin_dict=custom_margin)
     return fig.to_html(full_html=False,
                        default_height=350,
                        include_plotlyjs="cdn" if include_plotlyjs else False)
+
+
+def add_hr_to_html():
+    return "<hr>"
+
+
+def pr_auc(y_true, y_pred):
+    LOG.debug("calculating PR-AUC")
+    average = "weighted"
+    if len(np.unique(y_true)) == 2:
+        # Binary classification
+        precision, recall, _ = precision_recall_curve(y_true, y_pred)
+        return auc(recall, precision)
+    else:
+        # Multi-class classification
+        y_true_binarized = label_binarize(
+            y_true, classes=np.unique(y_true))
+
+        if average == 'macro':
+            # Macro-average PR-AUC: Calculate PR-AUC
+            # for each class, then average
+            auc_scores = []
+            for i in range(y_true_binarized.shape[1]):
+                precision, recall, _ = precision_recall_curve(
+                    y_true_binarized[:, i], y_pred[:, i])
+                auc_scores.append(auc(recall, precision))
+            return np.mean(auc_scores)
+
+        elif average == 'micro':
+            # Micro-average PR-AUC: Aggregate true positives
+            # and false positives across all classes
+            precision, recall, _ = precision_recall_curve(
+                y_true_binarized.ravel(), y_pred.ravel())
+            return auc(recall, precision)
+
+        elif average == 'weighted':
+            # Weighted average: Calculate PR-AUC for each class,
+            # weighted by class frequency
+            auc_scores = []
+            for i in range(y_true_binarized.shape[1]):
+                precision, recall, _ = precision_recall_curve(
+                    y_true_binarized[:, i], y_pred[:, i])
+                auc_scores.append(auc(recall, precision))
+            return np.average(auc_scores, weights=np.bincount(y_true))

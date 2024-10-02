@@ -6,8 +6,6 @@ from feature_importance import FeatureImportanceAnalyzer
 
 import pandas as pd
 
-# from sklearn.metrics import auc, precision_recall_curve
-
 from utils import get_html_closing, get_html_template
 
 logging.basicConfig(level=logging.DEBUG)
@@ -122,26 +120,23 @@ class BaseModelTrainer:
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
-        # all_models = None
+        # if self.task_type == "classification":
+        #     average_displayed = "Weighted"
+        #     self.exp.add_metric(id=f'PR-AUC-{average_displayed}',
+        #                         name=f'PR-AUC-{average_displayed}',
+        #                         target='pred_proba',
+        #                         score_func=pr_auc,
+        #                         average='weighted'
+        #                         )
+        #     LOG.debug("added metric pr-auc")
         if hasattr(self, 'models') and self.models is not None:
             self.best_model = self.exp.compare_models(
                 include=self.models)
         else:
             self.best_model = self.exp.compare_models()
-        # self.best_model = all_models[0]
         self.results = self.exp.pull()
-
-        # pr_auc_list = []
-        # for model in all_models:
-        #     y_pred_prob = self.exp.predict_model(model)
-        #     precision, recall, _ = precision_recall_curve(
-        #         y_pred_prob['actual'], y_pred_prob['Score'])
-
-        #     pr_auc = auc(recall, precision)
-        #     pr_auc_list.append(pr_auc)
-
-        # self.results['PR-AUC'] = pr_auc_list
-        # self.results.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
+        if self.task_type == "classification":
+            self.results.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
 
     def save_model(self):
         LOG.info("Saving the model")
@@ -177,7 +172,8 @@ class BaseModelTrainer:
             self.output_dir, "comparison_results.csv"))
 
         plots_html = ""
-        for plot_name, plot_path in self.plots.items():
+        length = len(self.plots)
+        for i, (plot_name, plot_path) in enumerate(self.plots.items()):
             encoded_image = self.encode_image_to_base64(plot_path)
             plots_html += f"""
             <div class="plot">
@@ -186,6 +182,8 @@ class BaseModelTrainer:
                     alt="{plot_name}">
             </div>
             """
+            if i < length - 1:
+                plots_html += "<hr>"
 
         tree_plots = ""
         for i, tree in enumerate(self.trees):
