@@ -43,6 +43,20 @@ class ClassificationModelTrainer(BaseModelTrainer):
                  'feature_all']
         for plot_name in plots:
             try:
+                if plot_name == 'auc' and not self.exp.is_multiclass:
+                    plot_path = self.exp.plot_model(self.best_model,
+                                                    plot=plot_name,
+                                                    save=True,
+                                                    plot_kwargs={
+                                                        'micro': False,
+                                                        'macro': False,
+                                                        'per_class': False,
+                                                        'binary': True
+                                                        }
+                                                    )
+                    self.plots[plot_name] = plot_path
+                    continue
+
                 plot_path = self.exp.plot_model(self.best_model,
                                                 plot=plot_name, save=True)
                 self.plots[plot_name] = plot_path
@@ -77,7 +91,6 @@ class ClassificationModelTrainer(BaseModelTrainer):
         except Exception as e:
             LOG.error(f"Error generating plot importance(permutation): {e}")
 
-        # Uncomment and adjust if needed
         # try:
         #     fig_shap = explainer.plot_shap_summary()
         #     plots_explainer_html += add_plot_to_html(fig_shap,

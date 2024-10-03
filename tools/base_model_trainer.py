@@ -225,6 +225,9 @@ class BaseModelTrainer:
                     {setup_params_table.to_html(
                         index=False, header=False, classes='table')}
                 </table>
+                <h5>If you want to know all the experiment setup parameters,
+                  please check the PyCaret documentation for
+                  the classification/regression <code>exp</code> function.</h5>
                 <h2>Best Model: {model_name}</h2>
                 <table>
                     <tr><th>Parameter</th><th>Value</th></tr>
