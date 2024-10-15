@@ -6,7 +6,7 @@ from feature_importance import FeatureImportanceAnalyzer
 
 import pandas as pd
 
-from utils import get_html_closing, get_html_template
+from utils import get_html_closing, get_html_template, pr_auc
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -120,15 +120,15 @@ class BaseModelTrainer:
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
-        # if self.task_type == "classification":
-        #     average_displayed = "Weighted"
-        #     self.exp.add_metric(id=f'PR-AUC-{average_displayed}',
-        #                         name=f'PR-AUC-{average_displayed}',
-        #                         target='pred_proba',
-        #                         score_func=pr_auc,
-        #                         average='weighted'
-        #                         )
-        #     LOG.debug("added metric pr-auc")
+        if self.task_type == "classification":
+            average_displayed = "Weighted"
+            self.exp.add_metric(id=f'PR-AUC-{average_displayed}',
+                                name=f'PR-AUC-{average_displayed}',
+                                target='pred_proba',
+                                score_func=pr_auc,
+                                average='weighted'
+                                )
+
         if hasattr(self, 'models') and self.models is not None:
             self.best_model = self.exp.compare_models(
                 include=self.models)

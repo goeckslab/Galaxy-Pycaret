@@ -156,7 +156,7 @@ def add_hr_to_html():
     return "<hr>"
 
 
-def pr_auc(y_true, y_pred):
+def pr_auc(y_true, y_pred, **kwargs):
     LOG.debug("calculating PR-AUC")
     average = "weighted"
     if len(np.unique(y_true)) == 2:
