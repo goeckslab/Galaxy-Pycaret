@@ -6,7 +6,9 @@ from feature_importance import FeatureImportanceAnalyzer
 
 import pandas as pd
 
-from utils import get_html_closing, get_html_template, pr_auc
+from sklearn.metrics import average_precision_score
+
+from utils import get_html_closing, get_html_template
 
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
@@ -125,7 +127,7 @@ class BaseModelTrainer:
             self.exp.add_metric(id=f'PR-AUC-{average_displayed}',
                                 name=f'PR-AUC-{average_displayed}',
                                 target='pred_proba',
-                                score_func=pr_auc,
+                                score_func=average_precision_score,
                                 average='weighted'
                                 )
 
@@ -137,6 +139,11 @@ class BaseModelTrainer:
         self.results = self.exp.pull()
         if self.task_type == "classification":
             self.results.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
+        
+        test_results = self.exp.predict_model(self.best_model)
+        self.test_result_df = self.exp.pull()
+        if self.task_type == "classification":
+            self.test_result_df.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
 
     def save_model(self):
         LOG.info("Saving the model")
@@ -170,6 +177,8 @@ class BaseModelTrainer:
             index=False)
         self.results.to_csv(os.path.join(
             self.output_dir, "comparison_results.csv"))
+        self.test_result_df.to_csv(os.path.join(
+            self.output_dir, "test_results.csv"))
 
         plots_html = ""
         length = len(self.plots)
@@ -234,13 +243,17 @@ class BaseModelTrainer:
                     {best_model_params.to_html(
                         index=False, header=False, classes='table')}
                 </table>
-                <h2>Comparison Results</h2>
+                <h2>Comparison of Results on the Cross-Validation Set</h2>
                 <table>
                     {self.results.to_html(index=False, classes='table')}
                 </table>
+                <h2>Results on the Test Set for the best model</h2>
+                <table>
+                    {self.test_result_df.to_html(index=False, classes='table')}
+                </table>
             </div>
             <div id="plots" class="tab-content">
-                <h2>Best Model Plots</h2>
+                <h2>Best Model Plots on the testing set</h2>
                 {plots_html}
             </div>
             <div id="feature" class="tab-content">
