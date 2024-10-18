@@ -19,6 +19,7 @@ class RegressionModelTrainer(BaseModelTrainer):
             output_dir,
             task_type,
             random_seed,
+            test_file=None,
             **kwargs):
         super().__init__(
             input_file,
@@ -26,6 +27,7 @@ class RegressionModelTrainer(BaseModelTrainer):
             output_dir,
             task_type,
             random_seed,
+            test_file,
             **kwargs)
         self.exp = RegressionExperiment()
 

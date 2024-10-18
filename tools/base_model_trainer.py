@@ -23,6 +23,7 @@ class BaseModelTrainer:
             output_dir,
             task_type,
             random_seed,
+            test_file=None,
             **kwargs
             ):
         self.exp = None  # This will be set in the subclass
@@ -43,6 +44,8 @@ class BaseModelTrainer:
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.setup_params = {}
+        self.test_file = test_file
+        self.test_data = None
 
         LOG.info(f"Model kwargs: {self.__dict__}")
 
@@ -70,6 +73,13 @@ class BaseModelTrainer:
             self.data = self.data.fillna(self.data.median(numeric_only=True))
         self.data.columns = self.data.columns.str.replace('.', '_')
 
+        if self.test_file:
+            LOG.info(f"Loading test data from {self.test_file}")
+            self.test_data = pd.read_csv(self.test_file, sep=None, engine='python')
+            self.test_data = self.test_data.apply(pd.to_numeric, errors='coerce')
+            self.test_data.columns = self.test_data.columns.str.replace('.', '_')
+            
+
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
         self.setup_params = {
@@ -77,10 +87,14 @@ class BaseModelTrainer:
             'session_id': self.random_seed,
             'html': True,
             'log_experiment': False,
-            'system_log': False
+            'system_log': False,
+            'index': False,
         }
 
-        if hasattr(self, 'train_size') and self.train_size is not None:
+        if self.test_data is not None:
+            self.setup_params['test_data'] = self.test_data
+
+        if hasattr(self, 'train_size') and self.train_size is not None and self.test_data is None:
             self.setup_params['train_size'] = self.train_size
 
         if hasattr(self, 'normalize') and self.normalize is not None:
@@ -160,7 +174,7 @@ class BaseModelTrainer:
         LOG.info("Saving HTML report")
 
         model_name = type(self.best_model).__name__
-        excluded_params = ['html', 'log_experiment', 'system_log']
+        excluded_params = ['html', 'log_experiment', 'system_log', 'test_data']
         filtered_setup_params = {
             k: v
             for k, v in self.setup_params.items() if k not in excluded_params
@@ -243,7 +257,7 @@ class BaseModelTrainer:
                     {best_model_params.to_html(
                         index=False, header=False, classes='table')}
                 </table>
-                <h2>Comparison of Results on the Cross-Validation Set</h2>
+                <h2>Comparison Results on the Cross-Validation Set</h2>
                 <table>
                     {self.results.to_html(index=False, classes='table')}
                 </table>

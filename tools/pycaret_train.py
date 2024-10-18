@@ -58,6 +58,8 @@ def main():
     parser.add_argument("--random_seed", type=int,
                         default=42,
                         help="Random seed for PyCaret setup")
+    parser.add_argument("--test_file", type=str, default=None,
+                        help="Path to the test data file")
 
     args = parser.parse_args()
 
@@ -91,6 +93,7 @@ def main():
             args.output_dir,
             args.model_type,
             args.random_seed,
+            args.test_file,
             **model_kwargs)
     elif args.model_type == "regression":
         if "fix_imbalance" in model_kwargs:
@@ -101,6 +104,7 @@ def main():
             args.output_dir,
             args.model_type,
             args.random_seed,
+            args.test_file,
             **model_kwargs)
     else:
         LOG.error("Invalid model type. Please choose \
