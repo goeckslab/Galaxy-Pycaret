@@ -52,7 +52,16 @@ class BaseModelTrainer:
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
         self.data = pd.read_csv(self.input_file, sep=None, engine='python')
-        self.data = self.data.apply(pd.to_numeric, errors='coerce')
+        self.data.columns = self.data.columns.str.replace('.', '_')
+
+        numeric_cols = self.data.select_dtypes(include=['number']).columns
+        non_numeric_cols = self.data.select_dtypes(exclude=['number']).columns
+
+        self.data[numeric_cols] = self.data[numeric_cols].apply(pd.to_numeric, errors='coerce')
+
+        if len(non_numeric_cols) > 0:
+            LOG.info(f"Non-numeric columns found: {non_numeric_cols.tolist()}")
+
         names = self.data.columns.to_list()
         target_index = int(self.target_col)-1
         self.target = names[target_index]
@@ -71,12 +80,12 @@ class BaseModelTrainer:
         else:
             # Default strategy if not specified
             self.data = self.data.fillna(self.data.median(numeric_only=True))
-        self.data.columns = self.data.columns.str.replace('.', '_')
+        
 
         if self.test_file:
             LOG.info(f"Loading test data from {self.test_file}")
             self.test_data = pd.read_csv(self.test_file, sep=None, engine='python')
-            self.test_data = self.test_data.apply(pd.to_numeric, errors='coerce')
+            self.test_data = self.test_data[numeric_cols].apply(pd.to_numeric, errors='coerce')
             self.test_data.columns = self.test_data.columns.str.replace('.', '_')
             
 
@@ -221,7 +230,7 @@ class BaseModelTrainer:
                 """
 
         analyzer = FeatureImportanceAnalyzer(
-            data=self.data,
+            data=self.exp.X_transformed,
             target_col=self.target_col,
             task_type=self.task_type,
             output_dir=self.output_dir)

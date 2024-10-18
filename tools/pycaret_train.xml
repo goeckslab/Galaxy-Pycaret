@@ -45,12 +45,11 @@
                 #if $fix_imbalance
                 --fix_imbalance 
                 #end if
-        #end if 
-        --model_type $model_type 
-        #if $test_file
-            --test_file $test_file &&
         #end if
-
+        #if $test_file
+            --test_file $test_file 
+        #end if 
+        --model_type $model_type &&
         mkdir -p $comparison_result.extra_files_path &&
         cp -r best_model.csv $comparison_result.extra_files_path    
         ]]>

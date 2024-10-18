@@ -63,8 +63,11 @@ class FeatureImportanceAnalyzer:
     def save_tree_importance(self):
         model = self.exp.create_model('rf')
         importances = model.feature_importances_
+        processed_features = self.exp.get_config('X_transformed').columns
+        LOG.debug(f"Feature importances: {importances}")
+        LOG.debug(f"Features: {processed_features}")
         feature_importances = pd.DataFrame({
-            'Feature': self.data.columns.drop(self.target),
+            'Feature': processed_features,
             'Importance': importances
         }).sort_values(by='Importance', ascending=False)
         plt.figure(figsize=(10, 6))
@@ -77,7 +80,7 @@ class FeatureImportanceAnalyzer:
             self.output_dir,
             'tree_importance.png')
         plt.savefig(plot_path)
-        plt.close()
+        plt.close() 
         self.plots['tree_importance'] = plot_path
 
     def save_shap_values(self):
