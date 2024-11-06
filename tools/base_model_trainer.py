@@ -230,7 +230,7 @@ class BaseModelTrainer:
                 """
 
         analyzer = FeatureImportanceAnalyzer(
-            data=self.exp.X_transformed,
+            data=self.data,
             target_col=self.target_col,
             task_type=self.task_type,
             output_dir=self.output_dir)

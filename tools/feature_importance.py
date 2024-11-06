@@ -88,9 +88,9 @@ class FeatureImportanceAnalyzer:
         import shap
         explainer = shap.Explainer(model)
         shap_values = explainer.shap_values(
-            self.data.drop(columns=[self.target]))
-        shap.summary_plot(shap_values, self.data.drop(
-            columns=[self.target]), show=False)
+            self.exp.get_config('X_transformed'))
+        shap.summary_plot(shap_values, self.exp.get_config('X_transformed'),
+                        show=False)
         plt.title('Shap (LightGBM)')
         plot_path = os.path.join(
             self.output_dir, 'shap_summary.png')
