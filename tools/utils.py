@@ -1,11 +1,5 @@
 import logging
 
-import numpy as np
-
-from sklearn.metrics import auc, precision_recall_curve
-from sklearn.preprocessing import label_binarize
-
-
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 

@@ -57,7 +57,8 @@ class BaseModelTrainer:
         numeric_cols = self.data.select_dtypes(include=['number']).columns
         non_numeric_cols = self.data.select_dtypes(exclude=['number']).columns
 
-        self.data[numeric_cols] = self.data[numeric_cols].apply(pd.to_numeric, errors='coerce')
+        self.data[numeric_cols] = self.data[numeric_cols].apply(
+            pd.to_numeric, errors='coerce')
 
         if len(non_numeric_cols) > 0:
             LOG.info(f"Non-numeric columns found: {non_numeric_cols.tolist()}")
@@ -80,14 +81,16 @@ class BaseModelTrainer:
         else:
             # Default strategy if not specified
             self.data = self.data.fillna(self.data.median(numeric_only=True))
-        
 
         if self.test_file:
             LOG.info(f"Loading test data from {self.test_file}")
-            self.test_data = pd.read_csv(self.test_file, sep=None, engine='python')
-            self.test_data = self.test_data[numeric_cols].apply(pd.to_numeric, errors='coerce')
-            self.test_data.columns = self.test_data.columns.str.replace('.', '_')
-            
+            self.test_data = pd.read_csv(
+                self.test_file, sep=None, engine='python')
+            self.test_data = self.test_data[numeric_cols].apply(
+                pd.to_numeric, errors='coerce')
+            self.test_data.columns = self.test_data.columns.str.replace(
+                '.', '_'
+                )
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
@@ -103,7 +106,8 @@ class BaseModelTrainer:
         if self.test_data is not None:
             self.setup_params['test_data'] = self.test_data
 
-        if hasattr(self, 'train_size') and self.train_size is not None and self.test_data is None:
+        if hasattr(self, 'train_size') and self.train_size is not None \
+                and self.test_data is None:
             self.setup_params['train_size'] = self.train_size
 
         if hasattr(self, 'normalize') and self.normalize is not None:
@@ -162,11 +166,12 @@ class BaseModelTrainer:
         self.results = self.exp.pull()
         if self.task_type == "classification":
             self.results.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
-        
-        test_results = self.exp.predict_model(self.best_model)
+
+        _ = self.exp.predict_model(self.best_model)
         self.test_result_df = self.exp.pull()
         if self.task_type == "classification":
-            self.test_result_df.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
+            self.test_result_df.rename(
+                columns={'AUC': 'ROC-AUC'}, inplace=True)
 
     def save_model(self):
         LOG.info("Saving the model")
