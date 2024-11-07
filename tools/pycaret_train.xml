@@ -45,15 +45,18 @@
                 #if $fix_imbalance
                 --fix_imbalance 
                 #end if
+        #end if
+        #if $test_file
+            --test_file $test_file 
         #end if 
         --model_type $model_type &&
-
         mkdir -p $comparison_result.extra_files_path &&
         cp -r best_model.csv $comparison_result.extra_files_path    
         ]]>
     </command>
     <inputs>
         <param name="input_file" type="data" format="csv,tabular" label="Input Dataset (CSV or TSV)" />
+        <param name="test_file" type="data" format="csv,tabular" optional="true" label="Test Dataset (CSV or TSV)" />
        <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
         <conditional name="model_selection">
             <param name="model_type" type="select" label="Task">

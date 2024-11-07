@@ -1,3 +1,9 @@
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+LOG = logging.getLogger(__name__)
+
+
 def get_html_template():
     return """
     <html>
@@ -133,8 +139,12 @@ def customize_figure_layout(fig, margin_dict=None):
 
 
 def add_plot_to_html(fig, include_plotlyjs=True):
-    custom_margin = {'l': 40, 'r': 40, 't': 40, 'b': 40}
+    custom_margin = {'l': 40, 'r': 40, 't': 60, 'b': 60}
     fig = customize_figure_layout(fig, margin_dict=custom_margin)
     return fig.to_html(full_html=False,
                        default_height=350,
                        include_plotlyjs="cdn" if include_plotlyjs else False)
+
+
+def add_hr_to_html():
+    return "<hr>"

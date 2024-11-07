@@ -6,7 +6,7 @@ from feature_importance import FeatureImportanceAnalyzer
 
 import pandas as pd
 
-# from sklearn.metrics import auc, precision_recall_curve
+from sklearn.metrics import average_precision_score
 
 from utils import get_html_closing, get_html_template
 
@@ -23,6 +23,7 @@ class BaseModelTrainer:
             output_dir,
             task_type,
             random_seed,
+            test_file=None,
             **kwargs
             ):
         self.exp = None  # This will be set in the subclass
@@ -43,13 +44,25 @@ class BaseModelTrainer:
         for key, value in kwargs.items():
             setattr(self, key, value)
         self.setup_params = {}
+        self.test_file = test_file
+        self.test_data = None
 
         LOG.info(f"Model kwargs: {self.__dict__}")
 
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
         self.data = pd.read_csv(self.input_file, sep=None, engine='python')
-        self.data = self.data.apply(pd.to_numeric, errors='coerce')
+        self.data.columns = self.data.columns.str.replace('.', '_')
+
+        numeric_cols = self.data.select_dtypes(include=['number']).columns
+        non_numeric_cols = self.data.select_dtypes(exclude=['number']).columns
+
+        self.data[numeric_cols] = self.data[numeric_cols].apply(
+            pd.to_numeric, errors='coerce')
+
+        if len(non_numeric_cols) > 0:
+            LOG.info(f"Non-numeric columns found: {non_numeric_cols.tolist()}")
+
         names = self.data.columns.to_list()
         target_index = int(self.target_col)-1
         self.target = names[target_index]
@@ -68,7 +81,16 @@ class BaseModelTrainer:
         else:
             # Default strategy if not specified
             self.data = self.data.fillna(self.data.median(numeric_only=True))
-        self.data.columns = self.data.columns.str.replace('.', '_')
+
+        if self.test_file:
+            LOG.info(f"Loading test data from {self.test_file}")
+            self.test_data = pd.read_csv(
+                self.test_file, sep=None, engine='python')
+            self.test_data = self.test_data[numeric_cols].apply(
+                pd.to_numeric, errors='coerce')
+            self.test_data.columns = self.test_data.columns.str.replace(
+                '.', '_'
+                )
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
@@ -77,10 +99,15 @@ class BaseModelTrainer:
             'session_id': self.random_seed,
             'html': True,
             'log_experiment': False,
-            'system_log': False
+            'system_log': False,
+            'index': False,
         }
 
-        if hasattr(self, 'train_size') and self.train_size is not None:
+        if self.test_data is not None:
+            self.setup_params['test_data'] = self.test_data
+
+        if hasattr(self, 'train_size') and self.train_size is not None \
+                and self.test_data is None:
             self.setup_params['train_size'] = self.train_size
 
         if hasattr(self, 'normalize') and self.normalize is not None:
@@ -122,26 +149,29 @@ class BaseModelTrainer:
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
-        # all_models = None
+        if self.task_type == "classification":
+            average_displayed = "Weighted"
+            self.exp.add_metric(id=f'PR-AUC-{average_displayed}',
+                                name=f'PR-AUC-{average_displayed}',
+                                target='pred_proba',
+                                score_func=average_precision_score,
+                                average='weighted'
+                                )
+
         if hasattr(self, 'models') and self.models is not None:
             self.best_model = self.exp.compare_models(
                 include=self.models)
         else:
             self.best_model = self.exp.compare_models()
-        # self.best_model = all_models[0]
         self.results = self.exp.pull()
+        if self.task_type == "classification":
+            self.results.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
 
-        # pr_auc_list = []
-        # for model in all_models:
-        #     y_pred_prob = self.exp.predict_model(model)
-        #     precision, recall, _ = precision_recall_curve(
-        #         y_pred_prob['actual'], y_pred_prob['Score'])
-
-        #     pr_auc = auc(recall, precision)
-        #     pr_auc_list.append(pr_auc)
-
-        # self.results['PR-AUC'] = pr_auc_list
-        # self.results.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
+        _ = self.exp.predict_model(self.best_model)
+        self.test_result_df = self.exp.pull()
+        if self.task_type == "classification":
+            self.test_result_df.rename(
+                columns={'AUC': 'ROC-AUC'}, inplace=True)
 
     def save_model(self):
         LOG.info("Saving the model")
@@ -158,7 +188,7 @@ class BaseModelTrainer:
         LOG.info("Saving HTML report")
 
         model_name = type(self.best_model).__name__
-        excluded_params = ['html', 'log_experiment', 'system_log']
+        excluded_params = ['html', 'log_experiment', 'system_log', 'test_data']
         filtered_setup_params = {
             k: v
             for k, v in self.setup_params.items() if k not in excluded_params
@@ -175,9 +205,12 @@ class BaseModelTrainer:
             index=False)
         self.results.to_csv(os.path.join(
             self.output_dir, "comparison_results.csv"))
+        self.test_result_df.to_csv(os.path.join(
+            self.output_dir, "test_results.csv"))
 
         plots_html = ""
-        for plot_name, plot_path in self.plots.items():
+        length = len(self.plots)
+        for i, (plot_name, plot_path) in enumerate(self.plots.items()):
             encoded_image = self.encode_image_to_base64(plot_path)
             plots_html += f"""
             <div class="plot">
@@ -186,6 +219,8 @@ class BaseModelTrainer:
                     alt="{plot_name}">
             </div>
             """
+            if i < length - 1:
+                plots_html += "<hr>"
 
         tree_plots = ""
         for i, tree in enumerate(self.trees):
@@ -227,19 +262,26 @@ class BaseModelTrainer:
                     {setup_params_table.to_html(
                         index=False, header=False, classes='table')}
                 </table>
+                <h5>If you want to know all the experiment setup parameters,
+                  please check the PyCaret documentation for
+                  the classification/regression <code>exp</code> function.</h5>
                 <h2>Best Model: {model_name}</h2>
                 <table>
                     <tr><th>Parameter</th><th>Value</th></tr>
                     {best_model_params.to_html(
                         index=False, header=False, classes='table')}
                 </table>
-                <h2>Comparison Results</h2>
+                <h2>Comparison Results on the Cross-Validation Set</h2>
                 <table>
                     {self.results.to_html(index=False, classes='table')}
                 </table>
+                <h2>Results on the Test Set for the best model</h2>
+                <table>
+                    {self.test_result_df.to_html(index=False, classes='table')}
+                </table>
             </div>
             <div id="plots" class="tab-content">
-                <h2>Best Model Plots</h2>
+                <h2>Best Model Plots on the testing set</h2>
                 {plots_html}
             </div>
             <div id="feature" class="tab-content">

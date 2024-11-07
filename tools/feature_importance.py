@@ -63,8 +63,11 @@ class FeatureImportanceAnalyzer:
     def save_tree_importance(self):
         model = self.exp.create_model('rf')
         importances = model.feature_importances_
+        processed_features = self.exp.get_config('X_transformed').columns
+        LOG.debug(f"Feature importances: {importances}")
+        LOG.debug(f"Features: {processed_features}")
         feature_importances = pd.DataFrame({
-            'Feature': self.data.columns.drop(self.target),
+            'Feature': processed_features,
             'Importance': importances
         }).sort_values(by='Importance', ascending=False)
         plt.figure(figsize=(10, 6))
@@ -85,9 +88,9 @@ class FeatureImportanceAnalyzer:
         import shap
         explainer = shap.Explainer(model)
         shap_values = explainer.shap_values(
-            self.data.drop(columns=[self.target]))
-        shap.summary_plot(shap_values, self.data.drop(
-            columns=[self.target]), show=False)
+            self.exp.get_config('X_transformed'))
+        shap.summary_plot(shap_values,
+                          self.exp.get_config('X_transformed'), show=False)
         plt.title('Shap (LightGBM)')
         plot_path = os.path.join(
             self.output_dir, 'shap_summary.png')
