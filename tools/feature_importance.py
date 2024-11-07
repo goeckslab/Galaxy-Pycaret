@@ -80,7 +80,7 @@ class FeatureImportanceAnalyzer:
             self.output_dir,
             'tree_importance.png')
         plt.savefig(plot_path)
-        plt.close() 
+        plt.close()
         self.plots['tree_importance'] = plot_path
 
     def save_shap_values(self):
@@ -89,8 +89,8 @@ class FeatureImportanceAnalyzer:
         explainer = shap.Explainer(model)
         shap_values = explainer.shap_values(
             self.exp.get_config('X_transformed'))
-        shap.summary_plot(shap_values, self.exp.get_config('X_transformed'),
-                        show=False)
+        shap.summary_plot(shap_values,
+                          self.exp.get_config('X_transformed'), show=False)
         plt.title('Shap (LightGBM)')
         plot_path = os.path.join(
             self.output_dir, 'shap_summary.png')
