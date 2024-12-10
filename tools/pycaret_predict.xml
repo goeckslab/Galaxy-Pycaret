@@ -48,6 +48,14 @@
     </tests>
     <help>
         This tool uses PyCaret to evaluate a machine learning model or do prediction.
+
+        **Outputs**:
+
+        - **prediction**: The prediction results on the dataset in a csv format.
+
+        - **report**: The evaluation report is generated in HTML format. 
+            if you upload a dataset with a target column and select the target column in the target_feature input field.
+
     </help>
     <expand macro="macro_citations" />
 </tool>

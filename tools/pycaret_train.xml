@@ -53,8 +53,12 @@
         ]]>
     </command>
     <inputs>
-        <param name="input_file" type="data" format="csv,tabular" label="Input Dataset (CSV or TSV)" />
-        <param name="test_file" type="data" format="csv,tabular" optional="true" label="Test Dataset (CSV or TSV)" />
+        <param name="input_file" type="data" format="csv,tabular" label="Train Dataset (CSV or TSV)" />
+        <param name="test_file" type="data" format="csv,tabular" optional="true" label="Test Dataset (CSV or TSV)"
+        help="If a test set is not provided, 
+        the selected training set will be split into training, validation, and test sets. 
+        If a test set is provided, the training set will only be split into training and validation sets. 
+        BTW, cross-validation is always applied by default." />
        <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
         <conditional name="model_selection">
             <param name="model_type" type="select" label="Task">
@@ -189,6 +193,17 @@
     </tests>
     <help>
         This tool uses PyCaret to train and evaluate machine learning models.
+        It compares different models on a dataset and provides the best model based on the performance metrics.
+
+        **Outputs**
+
+        - **Model**: The best model trained on the dataset in h5 format.
+
+
+        - **Comparison Result**: The comparison result of different models in html format. 
+            It contains the performance metrics of different models, plots of the best model 
+            on the testing set (or part of the training set if a separate test set is not uploaded), and feature analysis plots.
+
     </help>
     <expand macro="macro_citations" />
 </tool>
