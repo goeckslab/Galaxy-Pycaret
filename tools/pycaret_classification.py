@@ -39,7 +39,7 @@ class ClassificationModelTrainer(BaseModelTrainer):
 
     def generate_plots(self):
         LOG.info("Generating and saving plots")
-        plots = ['auc', 'confusion_matrix', 'threshold', 'pr',
+        plots = ['confusion_matrix', 'auc', 'threshold', 'pr',
                  'error', 'class_report', 'learning', 'calibration',
                  'vc', 'dimension', 'manifold', 'rfe', 'feature',
                  'feature_all']

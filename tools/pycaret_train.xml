@@ -1,5 +1,5 @@
-<tool id="pycaret_tool" name="PyCaret Model Comparison" version="@VERSION@" profile="@PROFILE@">
-    <description>Compare different machine learning models on a dataset using PyCaret. Do feature analyses using Random Forest and LightGBM. </description>
+<tool id="pycaret_compare" name="PyCaret Model Comparison" version="@VERSION@" profile="@PROFILE@">
+    <description>compares different machine learning models on a dataset using PyCaret. Do feature analyses using Random Forest and LightGBM. </description>
     <macros>
         <import>pycaret_macros.xml</import>
     </macros>
@@ -148,7 +148,7 @@
         </conditional>
     </inputs>
     <outputs>
-        <data name="model" format="data" from_work_dir="model.pkl" label="${tool.name} best model on ${on_string}" />
+        <data name="model" format="h5" from_work_dir="pycaret_model.h5" label="${tool.name} best model on ${on_string}" />
         <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="${tool.name} Comparison result on ${on_string}"/>
     </outputs>
     <tests>
@@ -157,7 +157,25 @@
             <param name="target_feature" value="11"/> 
             <param name="model_type" value="classification"/>
             <param name="random_seed" value="42"/>
-            <output name="model" file="expected_model_classification" compare="sim_size"/>
+            <param name="customize_defaults" value="true"/>
+            <param name="train_size" value="0.8"/>
+            <param name="normalize" value="true"/>
+            <param name="feature_selection" value="true"/>
+            <param name="enable_cross_validation" value="true"/>
+            <param name="cross_validation_folds" value="5"/>
+            <param name="remove_outliers" value="true"/>
+            <param name="remove_multicollinearity" value="true"/>
+            <output name="model" file="expected_model_classification_customized.h5" compare="sim_size"/>
+            <output name="comparison_result" file="expected_comparison_result_classification_customized.html" compare="sim_size"> 
+                <extra_files type="file" name="best_model.csv" value="expected_best_model_classification_customized.csv" />
+            </output>
+        </test>
+        <test>
+            <param name="input_file" value="pcr.tsv"/>
+            <param name="target_feature" value="11"/> 
+            <param name="model_type" value="classification"/>
+            <param name="random_seed" value="42"/>
+            <output name="model" file="expected_model_classification.h5" compare="sim_size"/>
             <output name="comparison_result" file="expected_comparison_result_classification.html" compare="sim_size"> 
                 <extra_files type="file" name="best_model.csv" value="expected_best_model_classification.csv" />
             </output>
@@ -167,16 +185,7 @@
             <param name="target_feature" value="1"/> 
             <param name="model_type" value="regression"/>
             <param name="random_seed" value="42"/>
-            <!-- <param name="customize_defaults" value="true"/>
-            <param name="train_size" value="0.8"/>
-            <param name="normalize" value="true"/>
-            <param name="feature_selection" value="true"/>
-            <param name="enable_cross_validation" value="true"/>
-            <param name="cross_validation_folds" value="5"/>
-            <param name="remove_outliers" value="true"/>
-            <param name="remove_multicollinearity" value="true"/>
-            <param name="polynomial_features" value="true"/> -->
-            <output name="model" file="expected_model_regression" compare="sim_size" />
+            <output name="model" file="expected_model_regression.h5" compare="sim_size" />
             <output name="comparison_result" file="expected_comparison_result_regression.html" compare="sim_size"> 
                 <extra_files type="file" name="best_model.csv" value="expected_best_model_regression.csv" />
             </output>

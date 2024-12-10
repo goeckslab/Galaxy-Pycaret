@@ -1,8 +1,15 @@
 import base64
 import logging
 import os
+import tempfile
 
 from feature_importance import FeatureImportanceAnalyzer
+
+import h5py
+
+import joblib
+
+import numpy as np
 
 import pandas as pd
 
@@ -174,8 +181,13 @@ class BaseModelTrainer:
                 columns={'AUC': 'ROC-AUC'}, inplace=True)
 
     def save_model(self):
-        LOG.info("Saving the model")
-        self.exp.save_model(self.best_model, "model")
+        hdf5_model_path = "pycaret_model.h5"
+        with h5py.File(hdf5_model_path, 'w') as f:
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                joblib.dump(self.best_model, temp_file.name)
+                temp_file.seek(0)
+                model_bytes = temp_file.read()
+            f.create_dataset('model', data=np.void(model_bytes))
 
     def generate_plots(self):
         raise NotImplementedError("Subclasses should implement this method")
