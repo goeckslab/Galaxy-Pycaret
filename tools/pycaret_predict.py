@@ -4,8 +4,6 @@ import os
 import shutil
 import tempfile
 
-from generate_md import generate_report_from_path
-
 import h5py
 
 import joblib
@@ -129,19 +127,6 @@ class RegressionEvaluator(PyCaretModelEvaluator):
             predictions = exp.predict_model(self.model, data=data)
 
         return predictions, metrics, plot_paths
-
-
-def generate_md(plots, metrics):
-    LOG.error(plots)
-    if not os.path.exists("markdown"):
-        os.mkdir("markdown")
-    if not os.path.exists("markdown/Evaluation"):
-        os.mkdir("markdown/Evaluation")
-    for plot, path in plots.items():
-        shutil.copy(path, "markdown/Evaluation/")
-    LOG.error(type(metrics))
-    metrics.to_csv("markdown/Evaluation/metrics.csv", index=False)
-    generate_report_from_path("markdown", "evaluation.pdf", format="pdf")
 
 
 def generate_html_report(plots, metrics):
