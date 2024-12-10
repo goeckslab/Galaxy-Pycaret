@@ -15,9 +15,11 @@ def dataframe_to_markdown(df):
     # Generate header
     header = "| " + " | ".join(df.columns) + " |"
     separator = "| " + " | ".join(["---"] * len(df.columns)) + " |"
-    rows = "\n".join(["| " + " | ".join(map(str, row)) + " |" for row in df.values])
+    rows = "\n".join(
+        ["| " + " | ".join(map(str, row)) + " |" for row in df.values])
 
     return f"{header}\n{separator}\n{rows}"
+
 
 def generate_report_from_path(base_path, output_path, format="md"):
     """
@@ -55,7 +57,9 @@ def generate_report_from_path(base_path, output_path, format="md"):
                     markdown_content += "\n\n"
                 except Exception as e:
                     LOG.error(f"Failed to process CSV {file_path}: {e}")
-                    markdown_content += f"*Error reading table: {file_name}*\n\n"
+                    markdown_content += (
+                        f"*Error reading table: {file_name}*\n\n"
+                    )
 
         # Process image files in the subfolder
         for file_name in sorted(os.listdir(folder_path)):
@@ -66,17 +70,31 @@ def generate_report_from_path(base_path, output_path, format="md"):
                     image_name = os.path.splitext(file_name)[0]
                     markdown_content += f"### Plot: {image_name}\n\n"
                     if format == "md":
-                        markdown_content += f"![{image_name}](data:image/png;base64,{encoded_image})\n\n"
+                        markdown_content += "!["
+                        markdown_content += image_name
+                        markdown_content += "](data:image/png;base64,"
+                        markdown_content += encoded_image
+                        markdown_content += ")\n\n"
                     else:
                         # Include image as file path for PDF rendering
+                        img_src = f"data:image/png;base64,{encoded_image}"
+                        alt_text = file_name
+                        style = "width:600px; max-width:100%; height:auto;"
+
                         markdown_content += (
-                            f'<img src="data:image/png;base64,{encoded_image}" alt="{file_name}"'
-                            f'style="width:600px; max-width:100%; height:auto;" />\n\n'
+                            f"""
+                            <img
+                                src="{img_src}"
+                                alt="{alt_text}"
+                                style="{style}"
+                            />\n\n
+                            """
                         )
-                        LOG.error(f"Image path: {file_path}")
                 except Exception as e:
                     LOG.error(f"Failed to process image {file_path}: {e}")
-                    markdown_content += f"*Error displaying plot: {file_name}*\n\n"
+                    markdown_content += (
+                        f"*Error displaying plot: {file_name}*\n\n"
+                    )
 
         markdown_content += "---\n"
 

@@ -14,7 +14,6 @@ import pandas as pd
 
 from pycaret.classification import ClassificationExperiment
 from pycaret.regression import RegressionExperiment
-from pycaret.regression import predict_model as regress_predict
 
 from sklearn.metrics import average_precision_score
 
@@ -58,35 +57,33 @@ class ClassificationEvaluator(PyCaretModelEvaluator):
             target_name = names[target_index]
             exp.setup(data, target=target_name, test_data=data, index=False)
             exp.add_metric(id='PR-AUC-Weighted',
-                            name='PR-AUC-Weighted',
-                            target='pred_proba',
-                            score_func=average_precision_score,
-                            average='weighted'
-                            )
+                           name='PR-AUC-Weighted',
+                           target='pred_proba',
+                           score_func=average_precision_score,
+                           average='weighted')
             predictions = exp.predict_model(self.model)
             metrics = exp.pull()
             plots = ['confusion_matrix', 'auc', 'threshold', 'pr',
-                 'error', 'class_report', 'learning', 'calibration',
-                 'vc', 'dimension', 'manifold', 'rfe', 'feature',
-                 'feature_all']
+                     'error', 'class_report', 'learning', 'calibration',
+                     'vc', 'dimension', 'manifold', 'rfe', 'feature',
+                     'feature_all']
             for plot_name in plots:
                 try:
                     if plot_name == 'auc' and not exp.is_multiclass:
                         plot_path = exp.plot_model(self.model,
-                                                    plot=plot_name,
-                                                    save=True,
-                                                    plot_kwargs={
-                                                        'micro': False,
-                                                        'macro': False,
-                                                        'per_class': False,
-                                                        'binary': True
-                                                        }
-                                                    )
+                                                   plot=plot_name,
+                                                   save=True,
+                                                   plot_kwargs={
+                                                       'micro': False,
+                                                       'macro': False,
+                                                       'per_class': False,
+                                                       'binary': True
+                                                    })
                         plot_paths[plot_name] = plot_path
                         continue
 
                     plot_path = exp.plot_model(self.model,
-                                                    plot=plot_name, save=True)
+                                               plot=plot_name, save=True)
                     plot_paths[plot_name] = plot_path
                 except Exception as e:
                     LOG.error(f"Error generating plot {plot_name}: {e}")
@@ -97,7 +94,7 @@ class ClassificationEvaluator(PyCaretModelEvaluator):
             exp = ClassificationExperiment()
             exp.setup(data, target=None, test_data=data, index=False)
             predictions = exp.predict_model(self.model, data=data)
-        
+
         return predictions, metrics, plot_paths
 
 
@@ -115,12 +112,12 @@ class RegressionEvaluator(PyCaretModelEvaluator):
             predictions = exp.predict_model(self.model)
             metrics = exp.pull()
             plots = ['residuals', 'error', 'cooks',
-                 'learning', 'vc', 'manifold',
-                 'rfe', 'feature', 'feature_all']
+                     'learning', 'vc', 'manifold',
+                     'rfe', 'feature', 'feature_all']
             for plot_name in plots:
                 try:
                     plot_path = exp.plot_model(self.model,
-                                            plot=plot_name, save=True)
+                                               plot=plot_name, save=True)
                     plot_paths[plot_name] = plot_path
                 except Exception as e:
                     LOG.error(f"Error generating plot {plot_name}: {e}")
@@ -130,20 +127,22 @@ class RegressionEvaluator(PyCaretModelEvaluator):
             exp = RegressionExperiment()
             exp.setup(data, target=None, test_data=data, index=False)
             predictions = exp.predict_model(self.model, data=data)
-        
+
         return predictions, metrics, plot_paths
+
 
 def generate_md(plots, metrics):
     LOG.error(plots)
     if not os.path.exists("markdown"):
-        basepath = os.mkdir("markdown")
+        os.mkdir("markdown")
     if not os.path.exists("markdown/Evaluation"):
-        basepath = os.mkdir("markdown/Evaluation")
+        os.mkdir("markdown/Evaluation")
     for plot, path in plots.items():
         shutil.copy(path, "markdown/Evaluation/")
     LOG.error(type(metrics))
     metrics.to_csv("markdown/Evaluation/metrics.csv", index=False)
     generate_report_from_path("markdown", "evaluation.pdf", format="pdf")
+
 
 def generate_html_report(plots, metrics):
     """Generate an HTML evaluation report."""
@@ -204,9 +203,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.task == "classification":
-        evaluator = ClassificationEvaluator(args.model_path, args.task, args.target)
+        evaluator = ClassificationEvaluator(
+            args.model_path, args.task, args.target)
     elif args.task == "regression":
-        evaluator = RegressionEvaluator(args.model_path, args.task, args.target)
+        evaluator = RegressionEvaluator(
+            args.model_path, args.task, args.target)
     else:
         raise ValueError(
             "Unsupported task type. Use 'classification' or 'regression'.")
