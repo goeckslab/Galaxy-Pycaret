@@ -24,11 +24,27 @@
     </inputs>   
     <outputs>
         <data name="prediction" format="csv" from_work_dir="predictions.csv" label="${tool.name} prediction results on ${on_string}" />
-        <data name="report" format="pdf" from_work_dir="evaluation.pdf" label="${tool.name} evaluation report on ${on_string}">
+        <data name="report" format="html" from_work_dir="evaluation_report.html" label="${tool.name} evaluation report on ${on_string}">
             <filter>target_feature</filter>
         </data>
     </outputs>
     <tests>
+        <test>
+            <param name="input_model" value="expected_model_classification.h5" />
+            <param name="input_dataset" value="pcr.tsv" />
+            <param name="model_type" value="classification" />
+            <param name="target_feature" value="11" />
+            <output name="prediction" file="predictions_classification.csv" />
+            <output name="report" file="evaluation_report_classification.html" compare="sim_size" />
+        </test>
+        <test>
+            <param name="input_model" value="expected_model_regression.h5" />
+            <param name="input_dataset" value="auto-mpg.tsv" />
+            <param name="model_type" value="regression" />
+            <param name="target_feature" value="1" />
+            <output name="prediction" file="predictions_regression.csv" />
+            <output name="report" file="evaluation_report_regression.html" compare="sim_size" />
+        </test>
     </tests>
     <help>
         This tool uses PyCaret to evaluate a machine learning model or do prediction.

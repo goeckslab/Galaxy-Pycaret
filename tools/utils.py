@@ -1,3 +1,4 @@
+import base64
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -148,3 +149,9 @@ def add_plot_to_html(fig, include_plotlyjs=True):
 
 def add_hr_to_html():
     return "<hr>"
+
+
+def encode_image_to_base64(image_path):
+    """Convert an image file to a base64 encoded string."""
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")

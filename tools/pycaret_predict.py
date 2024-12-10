@@ -13,11 +13,12 @@ import joblib
 import pandas as pd
 
 from pycaret.classification import ClassificationExperiment
-from pycaret.classification import predict_model as classify_predict
 from pycaret.regression import RegressionExperiment
 from pycaret.regression import predict_model as regress_predict
 
 from sklearn.metrics import average_precision_score
+
+from utils import encode_image_to_base64, get_html_closing, get_html_template
 
 LOG = logging.getLogger(__name__)
 
@@ -90,9 +91,9 @@ class ClassificationEvaluator(PyCaretModelEvaluator):
                 except Exception as e:
                     LOG.error(f"Error generating plot {plot_name}: {e}")
                     continue
+            generate_html_report(plot_paths, metrics)
 
         else:
-            LOG.error(dir(self.model))
             exp = ClassificationExperiment()
             exp.setup(data, target=None, test_data=data, index=False)
             predictions = exp.predict_model(self.model, data=data)
@@ -104,13 +105,13 @@ class RegressionEvaluator(PyCaretModelEvaluator):
     def evaluate(self, data_path):
         metrics = None
         plot_paths = {}
-        data = pd.read_csv(data_path)
+        data = pd.read_csv(data_path, engine='python', sep=None)
         if self.target:
             names = data.columns.to_list()
             target_index = int(self.target)-1
             target_name = names[target_index]
             exp = RegressionExperiment()
-            exp.setup(data, target=target_name, test_data=data)
+            exp.setup(data, target=target_name, test_data=data, index=False)
             predictions = exp.predict_model(self.model)
             metrics = exp.pull()
             plots = ['residuals', 'error', 'cooks',
@@ -124,8 +125,11 @@ class RegressionEvaluator(PyCaretModelEvaluator):
                 except Exception as e:
                     LOG.error(f"Error generating plot {plot_name}: {e}")
                     continue
+            generate_html_report(plot_paths, metrics)
         else:
-            predictions = regress_predict(self.model, data=data)
+            exp = RegressionExperiment()
+            exp.setup(data, target=None, test_data=data, index=False)
+            predictions = exp.predict_model(self.model, data=data)
         
         return predictions, metrics, plot_paths
 
@@ -140,6 +144,46 @@ def generate_md(plots, metrics):
     LOG.error(type(metrics))
     metrics.to_csv("markdown/Evaluation/metrics.csv", index=False)
     generate_report_from_path("markdown", "evaluation.pdf", format="pdf")
+
+def generate_html_report(plots, metrics):
+    """Generate an HTML evaluation report."""
+    plots_html = ""
+    for plot_name, plot_path in plots.items():
+        encoded_image = encode_image_to_base64(plot_path)
+        plots_html += f"""
+        <div class="plot">
+            <h3>{plot_name.capitalize()}</h3>
+            <img src="data:image/png;base64,{encoded_image}" alt="{plot_name}">
+        </div>
+        <hr>
+        """
+
+    metrics_html = metrics.to_html(index=False, classes="table")
+
+    html_content = f"""
+    {get_html_template()}
+    <h1>Model Evaluation Report</h1>
+    <div class="tabs">
+        <div class="tab" onclick="openTab(event, 'metrics')">Metrics</div>
+        <div class="tab" onclick="openTab(event, 'plots')">Plots</div>
+    </div>
+    <div id="metrics" class="tab-content">
+        <h2>Metrics</h2>
+        <table>
+            {metrics_html}
+        </table>
+    </div>
+    <div id="plots" class="tab-content">
+        <h2>Plots</h2>
+        {plots_html}
+    </div>
+    {get_html_closing()}
+    """
+
+    # Save HTML report
+    with open("evaluation_report.html", "w") as html_file:
+        html_file.write(html_content)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -162,7 +206,7 @@ if __name__ == "__main__":
     if args.task == "classification":
         evaluator = ClassificationEvaluator(args.model_path, args.task, args.target)
     elif args.task == "regression":
-        evaluator = RegressionEvaluator(args.model_path, args.task)
+        evaluator = RegressionEvaluator(args.model_path, args.task, args.target)
     else:
         raise ValueError(
             "Unsupported task type. Use 'classification' or 'regression'.")
@@ -170,5 +214,3 @@ if __name__ == "__main__":
     predictions, metrics, plots = evaluator.evaluate(args.data_path)
 
     predictions.to_csv("predictions.csv", index=False)
-    if args.target:
-        generate_md(plots, metrics)
