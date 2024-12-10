@@ -29,7 +29,7 @@
         </data>
     </outputs>
     <tests>
-        <test>
+        <test expect_num_outputs="2">
             <param name="input_model" value="expected_model_classification.h5" />
             <param name="input_dataset" value="pcr.tsv" />
             <param name="model_type" value="classification" />
@@ -37,7 +37,7 @@
             <output name="prediction" file="predictions_classification.csv" />
             <output name="report" file="evaluation_report_classification.html" compare="sim_size" />
         </test>
-        <test>
+        <test expect_num_outputs="2">
             <param name="input_model" value="expected_model_regression.h5" />
             <param name="input_dataset" value="auto-mpg.tsv" />
             <param name="model_type" value="regression" />
