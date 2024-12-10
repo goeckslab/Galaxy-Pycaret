@@ -1,5 +1,5 @@
-<tool id="pycaret_tool" name="PyCaret Model Comparison" version="@VERSION@" profile="@PROFILE@">
-    <description>Compare different machine learning models on a dataset using PyCaret. Do feature analyses using Random Forest and LightGBM. </description>
+<tool id="pycaret_compare" name="PyCaret Model Comparison" version="@VERSION@" profile="@PROFILE@">
+    <description>compares different machine learning models on a dataset using PyCaret. Do feature analyses using Random Forest and LightGBM. </description>
     <macros>
         <import>pycaret_macros.xml</import>
     </macros>
@@ -148,7 +148,7 @@
         </conditional>
     </inputs>
     <outputs>
-        <data name="model" format="data" from_work_dir="model.pkl" label="${tool.name} best model on ${on_string}" />
+        <data name="model" format="h5" from_work_dir="pycaret_model.h5" label="${tool.name} best model on ${on_string}" />
         <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="${tool.name} Comparison result on ${on_string}"/>
     </outputs>
     <tests>
