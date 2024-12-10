@@ -49,9 +49,7 @@
         #if $test_file
             --test_file $test_file 
         #end if 
-        --model_type $model_type &&
-        mkdir -p $comparison_result.extra_files_path &&
-        cp -r best_model.csv $comparison_result.extra_files_path    
+        --model_type $model_type    
         ]]>
     </command>
     <inputs>
@@ -150,6 +148,7 @@
     <outputs>
         <data name="model" format="h5" from_work_dir="pycaret_model.h5" label="${tool.name} best model on ${on_string}" />
         <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="${tool.name} Comparison result on ${on_string}"/>
+        <data name="best_model_csv" format="csv" from_work_dir="best_model.csv" label="${tool.name} The prams of the best model on ${on_string}" hidden="true" />
     </outputs>
     <tests>
         <test>
@@ -166,9 +165,8 @@
             <param name="remove_outliers" value="true"/>
             <param name="remove_multicollinearity" value="true"/>
             <output name="model" file="expected_model_classification_customized.h5" compare="sim_size"/>
-            <output name="comparison_result" file="expected_comparison_result_classification_customized.html" compare="sim_size"> 
-                <extra_files type="file" name="best_model.csv" value="expected_best_model_classification_customized.csv" />
-            </output>
+            <output name="comparison_result" file="expected_comparison_result_classification_customized.html" compare="sim_size" /> 
+            <output name="best_model_csv" value="expected_best_model_classification_customized.csv" />
         </test>
         <test>
             <param name="input_file" value="pcr.tsv"/>
@@ -176,9 +174,8 @@
             <param name="model_type" value="classification"/>
             <param name="random_seed" value="42"/>
             <output name="model" file="expected_model_classification.h5" compare="sim_size"/>
-            <output name="comparison_result" file="expected_comparison_result_classification.html" compare="sim_size"> 
-                <extra_files type="file" name="best_model.csv" value="expected_best_model_classification.csv" />
-            </output>
+            <output name="comparison_result" file="expected_comparison_result_classification.html" compare="sim_size" /> 
+            <output name="best_model_csv" value="expected_best_model_classification.csv" />
         </test>
         <test>
             <param name="input_file" value="auto-mpg.tsv"/>
@@ -186,9 +183,8 @@
             <param name="model_type" value="regression"/>
             <param name="random_seed" value="42"/>
             <output name="model" file="expected_model_regression.h5" compare="sim_size" />
-            <output name="comparison_result" file="expected_comparison_result_regression.html" compare="sim_size"> 
-                <extra_files type="file" name="best_model.csv" value="expected_best_model_regression.csv" />
-            </output>
+            <output name="comparison_result" file="expected_comparison_result_regression.html" compare="sim_size" /> 
+            <output name="best_model_csv" value="expected_best_model_regression.csv" />
         </test>
     </tests>
     <help>
