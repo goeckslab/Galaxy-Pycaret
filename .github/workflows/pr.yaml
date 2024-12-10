@@ -321,65 +321,65 @@ jobs:
           exit 1
         fi
 
-  # # deploy the tools to the toolsheds (first TTS for testing)
-  # deploy:
-  #   name: Deploy
-  #   needs: [setup, lint, combine_outputs]
-  #   if: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' ) && github.repository_owner == 'galaxyproject' }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python-version: ['3.11']
-  #   steps:
-  #   - uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 1
-  #   - uses: actions/setup-python@v5
-  #     with:
-  #       python-version: ${{ matrix.python-version }}
-  #   - name: Cache .cache/pip
-  #     uses: actions/cache@v4
-  #     id: cache-pip
-  #     with:
-  #       path: ~/.cache/pip
-  #       key: pip_cache_py_${{ matrix.python-version }}_gxy_${{ needs.setup.outputs.galaxy-head-sha }}
-  #   - name: Deploy on testtoolshed
-  #     uses: galaxyproject/planemo-ci-action@v1
-  #     with:
-  #       mode: deploy
-  #       repository-list: ${{ needs.setup.outputs.repository-list }}
-  #       shed-target: testtoolshed
-  #       shed-key: ${{ secrets.TTS_API_KEY }}
-  #     continue-on-error: true
-  #   - name: Deploy on toolshed
-  #     uses: galaxyproject/planemo-ci-action@v1
-  #     with:
-  #       mode: deploy
-  #       repository-list: ${{ needs.setup.outputs.repository-list }}
-  #       shed-target: toolshed
-  #       shed-key: ${{ secrets.TS_API_KEY }}
+  # deploy the tools to the toolsheds (first TTS for testing)
+  deploy:
+    name: Deploy
+    needs: [setup, lint, combine_outputs]
+    if: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' ) && github.repository_owner == 'goeckslab' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11']
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Cache .cache/pip
+      uses: actions/cache@v4
+      id: cache-pip
+      with:
+        path: ~/.cache/pip
+        key: pip_cache_py_${{ matrix.python-version }}_gxy_${{ needs.setup.outputs.galaxy-head-sha }}
+    - name: Deploy on testtoolshed
+      uses: galaxyproject/planemo-ci-action@v1
+      with:
+        mode: deploy
+        repository-list: ${{ needs.setup.outputs.repository-list }}
+        shed-target: testtoolshed
+        shed-key: ${{ secrets.TTS_API_KEY }}
+      continue-on-error: true
+    - name: Deploy on toolshed
+      uses: galaxyproject/planemo-ci-action@v1
+      with:
+        mode: deploy
+        repository-list: ${{ needs.setup.outputs.repository-list }}
+        shed-target: toolshed
+        shed-key: ${{ secrets.TS_API_KEY }}
 
-  # deploy-report:
-  #   name: Report deploy status
-  #   needs: [deploy]
-  #   if: ${{ always() && needs.deploy.result != 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' ) && github.repository_owner == 'galaxyproject' }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   # report to the PR if deployment failed
-  #   - name: Get PR object
-  #     uses: 8BitJonny/gh-get-current-pr@2.2.0
-  #     id: getpr
-  #     with:
-  #       sha: ${{ github.event.after }}
-  #   - name: Create comment
-  #     uses: peter-evans/create-or-update-comment@v4
-  #     with:
-  #       token: ${{ secrets.PAT }}
-  #       issue-number: ${{ steps.getpr.outputs.number }}
-  #       body: |
-  #         Attention: deployment ${{ needs.deploy.result }}!
+  deploy-report:
+    name: Report deploy status
+    needs: [deploy]
+    if: ${{ always() && needs.deploy.result != 'success' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' ) && github.repository_owner == 'goeckslab' }}
+    runs-on: ubuntu-latest
+    steps:
+    # report to the PR if deployment failed
+    - name: Get PR object
+      uses: 8BitJonny/gh-get-current-pr@2.2.0
+      id: getpr
+      with:
+        sha: ${{ github.event.after }}
+    - name: Create comment
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        token: ${{ secrets.PAT }}
+        issue-number: ${{ steps.getpr.outputs.number }}
+        body: |
+          Attention: deployment ${{ needs.deploy.result }}!
 
-  #         https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   determine-success:
     name: Check workflow success
