@@ -1,0 +1,61 @@
+<tool id="pycaret_predict" name="PyCaret Predictor/Evaluator" version="@VERSION@" profile="@PROFILE@">
+    <description>predicts/evaluates your pycaret ML model on a dataset. </description>
+    <macros>
+        <import>pycaret_macros.xml</import>
+    </macros>
+    <expand macro="python_requirements" />
+    <command>
+        <![CDATA[
+        echo $target_feature && 
+        python $__tool_directory__/pycaret_predict.py --model_path $input_model --data_path $input_dataset --task $model_type 
+        #if $target_feature
+            --target $target_feature
+        #end if
+        ]]>
+    </command>
+    <inputs>
+        <param name="input_model" type="data" format="h5" label="Model you want to use to predict/evaluate:" />
+        <param name="input_dataset" type="data" format="csv,tabular" label="Dataset you use to predict/evaluate" />
+        <param name="model_type" type="select" label="Task">
+            <option value="classification">classification</option>
+            <option value="regression">regression</option>
+        </param>
+        <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_dataset" optional="true" label="Does your uploaded data include a target column? If so, please select the target column:" />
+    </inputs>   
+    <outputs>
+        <data name="prediction" format="csv" from_work_dir="predictions.csv" label="${tool.name} prediction results on ${on_string}" />
+        <data name="report" format="html" from_work_dir="evaluation_report.html" label="${tool.name} evaluation report on ${on_string}">
+            <filter>target_feature</filter>
+        </data>
+    </outputs>
+    <tests>
+        <test expect_num_outputs="2">
+            <param name="input_model" value="expected_model_classification.h5" />
+            <param name="input_dataset" value="pcr.tsv" />
+            <param name="model_type" value="classification" />
+            <param name="target_feature" value="11" />
+            <output name="prediction" file="predictions_classification.csv" />
+            <output name="report" file="evaluation_report_classification.html" compare="sim_size" />
+        </test>
+        <test expect_num_outputs="2">
+            <param name="input_model" value="expected_model_regression.h5" />
+            <param name="input_dataset" value="auto-mpg.tsv" />
+            <param name="model_type" value="regression" />
+            <param name="target_feature" value="1" />
+            <output name="prediction" file="predictions_regression.csv" />
+            <output name="report" file="evaluation_report_regression.html" compare="sim_size" />
+        </test>
+    </tests>
+    <help>
+        This tool uses PyCaret to evaluate a machine learning model or do prediction.
+
+        **Outputs**:
+
+        - **prediction**: The prediction results on the dataset in a csv format.
+
+        - **report**: The evaluation report is generated in HTML format. 
+            if you upload a dataset with a target column and select the target column in the target_feature input field.
+
+    </help>
+    <expand macro="macro_citations" />
+</tool>

@@ -1,0 +1,25 @@
+<macros>
+    <token name="@PYCARET_VERSION@">3.3.2</token>
+    <token name="@SUFFIX@">0</token>
+    <token name="@VERSION@">@PYCARET_VERSION@+@SUFFIX@</token>
+    <token name="@PROFILE@">21.05</token>
+    <xml name="python_requirements">
+        <requirements>
+            <container type="docker">quay.io/goeckslab/galaxy-pycaret:3.3.2</container>
+        </requirements>
+    </xml>
+    <xml name="macro_citations">
+        <citations>
+            <citation type="bibtex">@Manual{PyCaret,
+  author  = {Moez Ali},
+  title   = {PyCaret: An open source, low-code machine learning library in Python},
+  year    = {2020},
+  month   = {April},
+  note    = {PyCaret version 1.0.0},
+  url     = {https://www.pycaret.org}
+}
+            </citation>
+        </citations>
+    </xml>
+
+</macros>
