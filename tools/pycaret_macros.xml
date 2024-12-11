@@ -5,7 +5,7 @@
     <token name="@PROFILE@">21.05</token>
     <xml name="python_requirements">
         <requirements>
-            <container type="docker">quay.io/goeckslab/galaxy-pycaret:latest</container>
+            <container type="docker">quay.io/goeckslab/galaxy-pycaret:3.3.2</container>
         </requirements>
     </xml>
     <xml name="macro_citations">
