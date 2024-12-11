@@ -1,7 +1,7 @@
 categories: 
   - Machine Learning
 description: Tools for machine learning with pycaret in a simple, powerful and robust way 
-name: galaxy-pycaret
+name: galaxy_pycaret
 owner: goeckslab
 long_description: Tools for machine learning with pycaret in a simple, powerful and robust way
 remote_repository_url: https://github.com/goeckslab/Galaxy-Pycaret
