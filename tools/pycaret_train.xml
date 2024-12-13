@@ -6,20 +6,20 @@
     <expand macro="python_requirements" />
     <command>
         <![CDATA[
-        python $__tool_directory__/pycaret_train.py --input_file $input_file --target_col $target_feature --output_dir . --random_seed $random_seed
+        python $__tool_directory__/pycaret_train.py --input_file '$input_file' --target_col '$target_feature' --output_dir '.' --random_seed '$random_seed'
         #if $model_type == "classification"
             #if $classification_models
-                --models $classification_models
+                --models '$classification_models'
             #end if
         #end if
         #if $model_type == "regression"
             #if $regression_models
-                --models $regression_models
+                --models '$regression_models'
             #end if
         #end if
         #if $customize_defaults == "true"
                 #if $train_size
-                --train_size $train_size 
+                --train_size '$train_size' 
                 #end if
                 #if $normalize
                 --normalize  
@@ -31,7 +31,7 @@
                 --cross_validation 
                 #end if
                 #if $cross_validation_folds
-                --cross_validation_folds $cross_validation_folds 
+                --cross_validation_folds '$cross_validation_folds'
                 #end if
                 #if $remove_outliers
                 --remove_outliers  
@@ -47,9 +47,9 @@
                 #end if
         #end if
         #if $test_file
-            --test_file $test_file 
+            --test_file '$test_file'
         #end if 
-        --model_type $model_type    
+        --model_type '$model_type'    
         ]]>
     </command>
     <inputs>

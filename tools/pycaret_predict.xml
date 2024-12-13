@@ -7,9 +7,9 @@
     <command>
         <![CDATA[
         echo $target_feature && 
-        python $__tool_directory__/pycaret_predict.py --model_path $input_model --data_path $input_dataset --task $model_type 
+        python $__tool_directory__/pycaret_predict.py --model_path '$input_model' --data_path '$input_dataset' --task '$model_type' 
         #if $target_feature
-            --target $target_feature
+            --target '$target_feature'
         #end if
         ]]>
     </command>
