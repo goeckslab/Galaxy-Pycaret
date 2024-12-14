@@ -4,12 +4,13 @@ description: A powerful and robust low-code library for simplifying machine lear
 name: galaxy_pycaret
 owner: goeckslab
 long_description: |
-  PyCaret is a low-code machine learning library that simplifies the process of building, training, and deploying machine learning models.
-  With its comprehensive suite of tools, PyCaret enables users to perform complex tasks such as data preprocessing,
-  model selection, hyperparameter tuning, and evaluation, all within a single, intuitive interface. 
-  It is designed to be powerful and robust, making it suitable for both beginners and advanced users. 
-  Whether you are exploring data for insights, building predictive models, or deploying them into production, 
-  PyCaret provides a streamlined workflow that saves time and reduces code complexity.
+ Galaxy-PyCaret brings the power of PyCaret to the Galaxy platform,
+ focusing on essential machine learning tasks like model comparison,
+ prediction, and evaluation. It enables users to easily analyze data,
+ compare algorithms, and generate predictions with minimal coding. 
+ Designed for simplicity and efficiency, 
+ Galaxy-PyCaret is ideal for researchers and
+ data scientists seeking streamlined workflows for machine learning tasks within Galaxy.
 remote_repository_url: https://github.com/goeckslab/Galaxy-Pycaret
 homepage_url: https://github.com/goeckslab/Galaxy-Pycaret
 
@@ -20,9 +21,10 @@ suite:
   name: suite_pycaret
   description: A powerful and robust low-code library for simplifying machine learning workflows with PyCaret.
   long_description: |
-    PyCaret is a low-code machine learning library that simplifies the process of building, training, and deploying machine learning models.
-    With its comprehensive suite of tools, PyCaret enables users to perform complex tasks such as data preprocessing,
-    model selection, hyperparameter tuning, and evaluation, all within a single, intuitive interface. 
-    It is designed to be powerful and robust, making it suitable for both beginners and advanced users. 
-    Whether you are exploring data for insights, building predictive models, or deploying them into production, 
-    PyCaret provides a streamlined workflow that saves time and reduces code complexity.
+   Galaxy-PyCaret brings the power of PyCaret to the Galaxy platform,
+   focusing on essential machine learning tasks like model comparison,
+   prediction, and evaluation. It enables users to easily analyze data,
+   compare algorithms, and generate predictions with minimal coding. 
+   Designed for simplicity and efficiency, 
+   Galaxy-PyCaret is ideal for researchers and
+   data scientists seeking streamlined workflows for machine learning tasks within Galaxy.
