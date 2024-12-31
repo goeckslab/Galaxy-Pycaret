@@ -59,9 +59,14 @@ class RegressionModelTrainer(BaseModelTrainer):
         X_test = self.exp.X_test_transformed.copy()
         y_test = self.exp.y_test_transformed
 
-        explainer = RegressionExplainer(self.best_model, X_test, y_test)
-        self.expaliner = explainer
-        plots_explainer_html = ""
+        try:
+            explainer = RegressionExplainer(self.best_model, X_test, y_test)
+            self.expaliner = explainer
+            plots_explainer_html = ""
+        except Exception as e:
+            LOG.error(f"Error creating explainer: {e}")
+            self.plots_explainer_html = None
+            return
 
         try:
             fig_importance = explainer.plot_importances()
