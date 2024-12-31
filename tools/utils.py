@@ -1,6 +1,8 @@
 import base64
 import logging
 
+import numpy as np
+
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
@@ -155,3 +157,8 @@ def encode_image_to_base64(image_path):
     """Convert an image file to a base64 encoded string."""
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
+
+
+def predict_proba(self, X):
+    pred = self.predict(X)
+    return np.array([1-pred, pred]).T

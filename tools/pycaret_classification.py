@@ -6,7 +6,7 @@ from dashboard import generate_classifier_explainer_dashboard
 
 from pycaret.classification import ClassificationExperiment
 
-from utils import add_hr_to_html, add_plot_to_html
+from utils import add_hr_to_html, add_plot_to_html, predict_proba
 
 LOG = logging.getLogger(__name__)
 
@@ -39,6 +39,16 @@ class ClassificationModelTrainer(BaseModelTrainer):
 
     def generate_plots(self):
         LOG.info("Generating and saving plots")
+
+        if not hasattr(self.best_model, "predict_proba"):
+            import types
+            self.best_model.predict_proba = types.MethodType(
+                predict_proba, self.best_model)
+            LOG.warning(
+                f"The model {type(self.best_model).__name__}\
+                    does not support `predict_proba`. \
+                    Applying monkey patch.")
+
         plots = ['confusion_matrix', 'auc', 'threshold', 'pr',
                  'error', 'class_report', 'learning', 'calibration',
                  'vc', 'dimension', 'manifold', 'rfe', 'feature',
@@ -74,9 +84,14 @@ class ClassificationModelTrainer(BaseModelTrainer):
         X_test = self.exp.X_test_transformed.copy()
         y_test = self.exp.y_test_transformed
 
-        explainer = ClassifierExplainer(self.best_model, X_test, y_test)
-        self.expaliner = explainer
-        plots_explainer_html = ""
+        try:
+            explainer = ClassifierExplainer(self.best_model, X_test, y_test)
+            self.expaliner = explainer
+            plots_explainer_html = ""
+        except Exception as e:
+            LOG.error(f"Error creating explainer: {e}")
+            self.plots_explainer_html = None
+            return
 
         try:
             fig_importance = explainer.plot_importances()
