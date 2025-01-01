@@ -263,9 +263,13 @@ class BaseModelTrainer:
                 Best Model Plots</div>
                 <div class="tab" onclick="openTab(event, 'feature')">
                 Feature Importance</div>
-                <div class="tab" onclick="openTab(event, 'explainer')">
-                Explainer
-                </div>
+            """
+        if self.plots_explainer_html:
+            html_content += """
+                "<div class="tab" onclick="openTab(event, 'explainer')">"
+                Explainer Plots</div>
+            """
+        html_content += f"""
             </div>
             <div id="summary" class="tab-content">
                 <h2>Setup Parameters</h2>
@@ -299,13 +303,19 @@ class BaseModelTrainer:
             <div id="feature" class="tab-content">
                 {feature_importance_html}
             </div>
+        """
+        if self.plots_explainer_html:
+            html_content += f"""
             <div id="explainer" class="tab-content">
                 {self.plots_explainer_html}
                 {tree_plots}
             </div>
-        {get_html_closing()}
-        """
-
+            {get_html_closing()}
+            """
+        else:
+            html_content += f"""
+            {get_html_closing()}
+            """
         with open(os.path.join(
                 self.output_dir, "comparison_result.html"), "w") as file:
             file.write(html_content)
