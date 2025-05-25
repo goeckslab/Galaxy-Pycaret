@@ -124,7 +124,7 @@
                 <option value="true">Yes</option>
             </param>
             <when value="true">
-                <param name="train_size" type="float" value="0.7" min="0.1" max="0.9" label="Train Size" help="Proportion of the dataset to include in the train split." />
+                <param name="train_size" type="float" value="0.7" min="0.1" max="0.9" label="Train Size" help="Proportion of the input dataset to include in the train split." />
                 <param name="normalize" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Normalize Data" help="Whether to normalize data before training." />
                 <param name="feature_selection" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Feature Selection" help="Whether to perform feature selection." />
                 <conditional name="cross_validation">
@@ -139,10 +139,10 @@
                         <!-- No additional parameters to show if the user selects 'No' -->
                     </when>
                 </conditional>
-                <param name="remove_outliers" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Outliers" help="Whether to remove outliers from the dataset before training." />
+                <param name="remove_outliers" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Outliers" help="Whether to remove outliers from the input dataset before training." />
                 <param name="remove_multicollinearity" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Multicollinearity" help="Whether to remove multicollinear features before training." />
                 <param name="polynomial_features" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Polynomial Features" help="Whether to create polynomial features before training." />
-                <param name="fix_imbalance" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Fix Imbalance" help="ONLY for classfication! Whether to use SMOTE or similar methods to fix imbalance in the dataset." />
+                <param name="fix_imbalance" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Fix Imbalance" help="ONLY for classfication! Whether to use SMOTE or similar methods to fix imbalance in the input dataset." />
             </when>
             <when value="false">
                 <!-- No additional parameters to show if the user selects 'No' -->
