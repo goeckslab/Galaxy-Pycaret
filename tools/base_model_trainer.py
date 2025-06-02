@@ -20,7 +20,6 @@ from utils import get_html_closing, get_html_template
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
-
 class BaseModelTrainer:
 
     def __init__(
@@ -263,7 +262,7 @@ class BaseModelTrainer:
                 Best Model Plots</div>
                 <div class="tab" onclick="openTab(event, 'feature')">
                 Feature Importance</div>
-            """
+        """
         if self.plots_explainer_html:
             html_content += """
                 "<div class="tab" onclick="openTab(event, 'explainer')">"
@@ -273,20 +272,12 @@ class BaseModelTrainer:
             </div>
             <div id="summary" class="tab-content">
                 <h2>Setup Parameters</h2>
-                <table>
-                    <tr><th>Parameter</th><th>Value</th></tr>
-                    {setup_params_table.to_html(
-                        index=False, header=False, classes='table')}
-                </table>
+                {setup_params_table.to_html(index=False, header=True, classes='table')}
                 <h5>If you want to know all the experiment setup parameters,
                   please check the PyCaret documentation for
                   the classification/regression <code>exp</code> function.</h5>
                 <h2>Best Model: {model_name}</h2>
-                <table>
-                    <tr><th>Parameter</th><th>Value</th></tr>
-                    {best_model_params.to_html(
-                        index=False, header=False, classes='table')}
-                </table>
+                {best_model_params.to_html(index=False, header=True, classes='table')}
                 <h2>Comparison Results on the Cross-Validation Set</h2>
                 <table>
                     {self.results.to_html(index=False, classes='table')}
@@ -326,7 +317,6 @@ class BaseModelTrainer:
     def generate_plots_explainer(self):
         raise NotImplementedError("Subclasses should implement this method")
 
-    # not working now
     def generate_tree_plots(self):
         from sklearn.ensemble import RandomForestClassifier, \
             RandomForestRegressor
