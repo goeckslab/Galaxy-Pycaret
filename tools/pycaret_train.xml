@@ -1,5 +1,5 @@
-<tool id="pycaret_compare" name="PyCaret Model Comparison" version="@VERSION@" profile="@PROFILE@">
-    <description>compares different machine learning models on a dataset using PyCaret. Do feature analyses using Random Forest and LightGBM. </description>
+<tool id="pycaret_compare" name="Tabular Learner" version="@VERSION@" profile="@PROFILE@">
+    <description>applies and evaluates multiple machine learning models on a tabular dataset</description>
     <macros>
         <import>pycaret_macros.xml</import>
     </macros>
@@ -53,12 +53,12 @@
         ]]>
     </command>
     <inputs>
-        <param name="input_file" type="data" format="csv,tabular" label="Train Dataset (CSV or TSV)" />
-        <param name="test_file" type="data" format="csv,tabular" optional="true" label="Test Dataset (CSV or TSV)"
-        help="If a test set is not provided, 
-        the selected training set will be split into training, validation, and test sets. 
-        If a test set is provided, the training set will only be split into training and validation sets. 
-        BTW, cross-validation is always applied by default." />
+        <param name="input_file" type="data" format="csv,tabular" label="Tabular Input Dataset" />
+        <param name="test_file" type="data" format="csv,tabular" optional="true" label="Tabular Test Dataset"
+        help="If a test dataset is not provided, 
+        the input dataset will be split into training, validation, and test sets. 
+        If a test set is provided, the input dataset will be split into training and validation sets. 
+        Cross-validation is applied by default during training." />
        <param name="target_feature" multiple="false" type="data_column" use_header_names="true" data_ref="input_file" label="Select the target column:" />
         <conditional name="model_selection">
             <param name="model_type" type="select" label="Task">
@@ -124,25 +124,25 @@
                 <option value="true">Yes</option>
             </param>
             <when value="true">
-                <param name="train_size" type="float" value="0.7" min="0.1" max="0.9" label="Train Size" help="Proportion of the dataset to include in the train split." />
+                <param name="train_size" type="float" value="0.7" min="0.1" max="0.9" label="Train Size" help="Proportion of the input dataset to include in the train split." />
                 <param name="normalize" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Normalize Data" help="Whether to normalize data before training." />
                 <param name="feature_selection" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Feature Selection" help="Whether to perform feature selection." />
                 <conditional name="cross_validation">
-                    <param name="enable_cross_validation" type="select" label="Enable Cross Validation?" help="Select whether to enable cross-validation. Default: Yes" >
+                    <param name="enable_cross_validation" type="select" label="Enable Cross Validation?" help="Select whether to enable cross-validation." >
                         <option value="false" >No</option>
                         <option value="true" selected="true">Yes</option>
                     </param>
                     <when value="true">
-                        <param name="cross_validation_folds" type="integer" value="10" min="2" max="20" label="Cross Validation Folds" help="Number of folds to use for cross-validation. Default: 10" />
+                        <param name="cross_validation_folds" type="integer" value="10" min="2" max="20" label="Cross Validation Folds" help="Number of folds to use for cross-validation." />
                     </when>
                     <when value="false">
                         <!-- No additional parameters to show if the user selects 'No' -->
                     </when>
                 </conditional>
-                <param name="remove_outliers" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Outliers" help="Whether to remove outliers from the dataset before training. Default: False" />
-                <param name="remove_multicollinearity" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Multicollinearity" help="Whether to remove multicollinear features before training. Default: False" />
-                <param name="polynomial_features" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Polynomial Features" help="Whether to create polynomial features before training. Default: False" />
-                <param name="fix_imbalance" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Fix Imbalance" help="ONLY for classfication! Whether to use SMOTE or similar methods to fix imbalance in the dataset. Default: False" />
+                <param name="remove_outliers" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Outliers" help="Whether to remove outliers from the input dataset before training." />
+                <param name="remove_multicollinearity" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Remove Multicollinearity" help="Whether to remove multicollinear features before training." />
+                <param name="polynomial_features" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Polynomial Features" help="Whether to create polynomial features before training." />
+                <param name="fix_imbalance" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Fix Imbalance" help="ONLY for classfication! Whether to use SMOTE or similar methods to fix imbalance in the input dataset." />
             </when>
             <when value="false">
                 <!-- No additional parameters to show if the user selects 'No' -->
@@ -150,9 +150,9 @@
         </conditional>
     </inputs>
     <outputs>
+        <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="${tool.name} analysis report on ${on_string}"/>
         <data name="model" format="h5" from_work_dir="pycaret_model.h5" label="${tool.name} best model on ${on_string}" />
-        <data name="comparison_result" format="html" from_work_dir="comparison_result.html" label="${tool.name} Comparison result on ${on_string}"/>
-        <data name="best_model_csv" format="csv" from_work_dir="best_model.csv" label="${tool.name} The prams of the best model on ${on_string}" hidden="true" />
+        <data name="best_model_csv" format="csv" from_work_dir="best_model.csv" label="${tool.name} The parameters of the best model on ${on_string}" hidden="true" />
     </outputs>
     <tests>
         <test>
