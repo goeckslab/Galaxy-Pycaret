@@ -20,6 +20,7 @@ from utils import get_html_closing, get_html_template
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
+
 class BaseModelTrainer:
 
     def __init__(
@@ -54,6 +55,7 @@ class BaseModelTrainer:
         self.test_data = None
 
         LOG.info(f"Model kwargs: {self.__dict__}")
+
 
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
@@ -97,6 +99,7 @@ class BaseModelTrainer:
             self.test_data.columns = self.test_data.columns.str.replace(
                 '.', '_'
                 )
+
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
@@ -153,6 +156,7 @@ class BaseModelTrainer:
         LOG.info(self.setup_params)
         self.exp.setup(self.data, **self.setup_params)
 
+
     def train_model(self):
         LOG.info("Training and selecting the best model")
         if self.task_type == "classification":
@@ -179,6 +183,7 @@ class BaseModelTrainer:
             self.test_result_df.rename(
                 columns={'AUC': 'ROC-AUC'}, inplace=True)
 
+
     def save_model(self):
         hdf5_model_path = "pycaret_model.h5"
         with h5py.File(hdf5_model_path, 'w') as f:
@@ -188,12 +193,15 @@ class BaseModelTrainer:
                 model_bytes = temp_file.read()
             f.create_dataset('model', data=np.void(model_bytes))
 
+
     def generate_plots(self):
         raise NotImplementedError("Subclasses should implement this method")
+
 
     def encode_image_to_base64(self, img_path):
         with open(img_path, 'rb') as img_file:
             return base64.b64encode(img_file.read()).decode('utf-8')
+
 
     def save_html_report(self):
         LOG.info("Saving HTML report")
@@ -272,20 +280,27 @@ class BaseModelTrainer:
             </div>
             <div id="summary" class="tab-content">
                 <h2>Setup Parameters</h2>
-                {setup_params_table.to_html(index=False, header=True, classes='table')}
+                {setup_params_table.to_html(
+                    index=False,
+                    header=True,
+                    classes='table sortable'
+                )}
                 <h5>If you want to know all the experiment setup parameters,
                   please check the PyCaret documentation for
                   the classification/regression <code>exp</code> function.</h5>
                 <h2>Best Model: {model_name}</h2>
-                {best_model_params.to_html(index=False, header=True, classes='table')}
+                {best_model_params.to_html(
+                    index=False,
+                    header=True,
+                    classes='table sortable'
+                )}
                 <h2>Comparison Results on the Cross-Validation Set</h2>
-                <table>
-                    {self.results.to_html(index=False, classes='table')}
-                </table>
+                {self.results.to_html(index=False, classes='table sortable')}
                 <h2>Results on the Test Set for the best model</h2>
-                <table>
-                    {self.test_result_df.to_html(index=False, classes='table')}
-                </table>
+                {self.test_result_df.to_html(
+                    index=False,
+                    classes='table sortable'
+                )}
             </div>
             <div id="plots" class="tab-content">
                 <h2>Best Model Plots on the testing set</h2>
@@ -301,21 +316,76 @@ class BaseModelTrainer:
                 {self.plots_explainer_html}
                 {tree_plots}
             </div>
-            {get_html_closing()}
             """
-        else:
-            html_content += f"""
-            {get_html_closing()}
-            """
+        html_content += """
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var tables = document.querySelectorAll("table.sortable");
+            tables.forEach(function(table) {
+                var headers = table.querySelectorAll("th");
+                headers.forEach(function(header, index) {
+                    header.style.cursor = "pointer";
+                    // Add initial arrow (up) to indicate sortability
+                    header.innerHTML += '<span class="sort-arrow"> ↑</span>';
+                    header.addEventListener("click", function() {
+                        var direction = this.getAttribute(
+                            "data-sort-direction"
+                        ) || "asc";
+                        // Reset arrows in all headers of this table
+                        headers.forEach(function(h) {
+                            var arrow = h.querySelector(".sort-arrow");
+                            if (arrow) arrow.textContent = " ↑";
+                        });
+                        // Set arrow for clicked header
+                        var arrow = this.querySelector(".sort-arrow");
+                        arrow.textContent = direction === "asc" ? " ↓" : " ↑";
+                        sortTable(table, index, direction);
+                        this.setAttribute("data-sort-direction",
+                        direction === "asc" ? "desc" : "asc");
+                    });
+                });
+            });
+        });
+
+        function sortTable(table, colNum, direction) {
+            var tb = table.tBodies[0];
+            var tr = Array.prototype.slice.call(tb.rows, 0);
+            var multiplier = direction === "asc" ? 1 : -1;
+            tr = tr.sort(function(a, b) {
+                var aText = a.cells[colNum].textContent.trim();
+                var bText = b.cells[colNum].textContent.trim();
+                // Remove arrow from text comparison
+                aText = aText.replace(/[↑↓]/g, '').trim();
+                bText = bText.replace(/[↑↓]/g, '').trim();
+                if (!isNaN(aText) && !isNaN(bText)) {
+                    return multiplier * (
+                        parseFloat(aText) - parseFloat(bText)
+                    );
+                } else {
+                    return multiplier * aText.localeCompare(bText);
+                }
+            });
+            for (var i = 0; i < tr.length; ++i) tb.appendChild(tr[i]);
+        }
+        </script>
+        """
+        html_content += f"""
+        {get_html_closing()}
+        """
         with open(os.path.join(
-                self.output_dir, "comparison_result.html"), "w") as file:
+                    self.output_dir,
+                    "comparison_result.html"), "w"
+                ) as file:
             file.write(html_content)
+
 
     def save_dashboard(self):
         raise NotImplementedError("Subclasses should implement this method")
 
+
     def generate_plots_explainer(self):
         raise NotImplementedError("Subclasses should implement this method")
+
 
     def generate_tree_plots(self):
         from sklearn.ensemble import RandomForestClassifier, \
@@ -346,6 +416,7 @@ class BaseModelTrainer:
                 self.trees.append(fig)
         except Exception as e:
             LOG.error(f"Error generating tree plots: {e}")
+
 
     def run(self):
         self.load_data()
