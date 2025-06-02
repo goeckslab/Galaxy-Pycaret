@@ -287,7 +287,7 @@ class BaseModelTrainer:
         """
         if self.plots_explainer_html:
             html_content += """
-                "<div class="tab" onclick="openTab(event, 'explainer')">"
+                <div class="tab" onclick="openTab(event, 'explainer')">
                 Explainer Plots</div>
             """
         html_content += f"""
