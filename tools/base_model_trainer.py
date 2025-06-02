@@ -24,15 +24,15 @@ LOG = logging.getLogger(__name__)
 class BaseModelTrainer:
 
     def __init__(
-            self,
-            input_file,
-            target_col,
-            output_dir,
-            task_type,
-            random_seed,
-            test_file=None,
-            **kwargs
-            ):
+        self,
+        input_file,
+        target_col,
+        output_dir,
+        task_type,
+        random_seed,
+        test_file=None,
+        **kwargs,
+    ):
         self.exp = None  # This will be set in the subclass
         self.input_file = input_file
         self.target_col = target_col
@@ -56,35 +56,36 @@ class BaseModelTrainer:
 
         LOG.info(f"Model kwargs: {self.__dict__}")
 
-
     def load_data(self):
         LOG.info(f"Loading data from {self.input_file}")
-        self.data = pd.read_csv(self.input_file, sep=None, engine='python')
-        self.data.columns = self.data.columns.str.replace('.', '_')
+        self.data = pd.read_csv(self.input_file, sep=None, engine="python")
+        self.data.columns = self.data.columns.str.replace(".", "_")
 
-        numeric_cols = self.data.select_dtypes(include=['number']).columns
-        non_numeric_cols = self.data.select_dtypes(exclude=['number']).columns
+        numeric_cols = self.data.select_dtypes(include=["number"]).columns
+        non_numeric_cols = self.data.select_dtypes(exclude=["number"]).columns
 
         self.data[numeric_cols] = self.data[numeric_cols].apply(
-            pd.to_numeric, errors='coerce')
+            pd.to_numeric, errors="coerce"
+        )
 
         if len(non_numeric_cols) > 0:
             LOG.info(f"Non-numeric columns found: {non_numeric_cols.tolist()}")
 
         names = self.data.columns.to_list()
-        target_index = int(self.target_col)-1
+        target_index = int(self.target_col) - 1
         self.target = names[target_index]
-        self.features_name = [name
-                              for i, name in enumerate(names)
-                              if i != target_index]
-        if hasattr(self, 'missing_value_strategy'):
-            if self.missing_value_strategy == 'mean':
+        self.features_name = [
+            name for i,
+            name in enumerate(names) if i != target_index
+        ]
+        if hasattr(self, "missing_value_strategy"):
+            if self.missing_value_strategy == "mean":
+                self.data = self.data.fillna(self.data.mean(numeric_only=True))
+            elif self.missing_value_strategy == "median":
                 self.data = self.data.fillna(
-                    self.data.mean(numeric_only=True))
-            elif self.missing_value_strategy == 'median':
-                self.data = self.data.fillna(
-                    self.data.median(numeric_only=True))
-            elif self.missing_value_strategy == 'drop':
+                    self.data.median(numeric_only=True)
+                )
+            elif self.missing_value_strategy == "drop":
                 self.data = self.data.dropna()
         else:
             # Default strategy if not specified
@@ -93,139 +94,151 @@ class BaseModelTrainer:
         if self.test_file:
             LOG.info(f"Loading test data from {self.test_file}")
             self.test_data = pd.read_csv(
-                self.test_file, sep=None, engine='python')
+                self.test_file,
+                sep=None,
+                engine="python"
+            )
             self.test_data = self.test_data[numeric_cols].apply(
-                pd.to_numeric, errors='coerce')
+                pd.to_numeric, errors="coerce"
+            )
             self.test_data.columns = self.test_data.columns.str.replace(
-                '.', '_'
-                )
-
+                ".", "_"
+            )
 
     def setup_pycaret(self):
         LOG.info("Initializing PyCaret")
         self.setup_params = {
-            'target': self.target,
-            'session_id': self.random_seed,
-            'html': True,
-            'log_experiment': False,
-            'system_log': False,
-            'index': False,
+            "target": self.target,
+            "session_id": self.random_seed,
+            "html": True,
+            "log_experiment": False,
+            "system_log": False,
+            "index": False,
         }
 
         if self.test_data is not None:
-            self.setup_params['test_data'] = self.test_data
+            self.setup_params["test_data"] = self.test_data
 
-        if hasattr(self, 'train_size') and self.train_size is not None \
-                and self.test_data is None:
-            self.setup_params['train_size'] = self.train_size
+        if (
+            hasattr(self, "train_size")
+            and self.train_size is not None
+            and self.test_data is None
+        ):
+            self.setup_params["train_size"] = self.train_size
 
-        if hasattr(self, 'normalize') and self.normalize is not None:
-            self.setup_params['normalize'] = self.normalize
+        if hasattr(self, "normalize") and self.normalize is not None:
+            self.setup_params["normalize"] = self.normalize
 
-        if hasattr(self, 'feature_selection') and \
+        if hasattr(self, "feature_selection") and \
                 self.feature_selection is not None:
-            self.setup_params['feature_selection'] = self.feature_selection
+            self.setup_params["feature_selection"] = self.feature_selection
 
-        if hasattr(self, 'cross_validation') and \
-                self.cross_validation is not None \
-                and self.cross_validation is False:
-            self.setup_params['cross_validation'] = self.cross_validation
+        if (
+            hasattr(self, "cross_validation")
+            and self.cross_validation is not None
+            and self.cross_validation is False
+        ):
+            self.setup_params["cross_validation"] = self.cross_validation
 
-        if hasattr(self, 'cross_validation') and \
+        if hasattr(self, "cross_validation") and \
                 self.cross_validation is not None:
-            if hasattr(self, 'cross_validation_folds'):
-                self.setup_params['fold'] = self.cross_validation_folds
+            if hasattr(self, "cross_validation_folds"):
+                self.setup_params["fold"] = self.cross_validation_folds
 
-        if hasattr(self, 'remove_outliers') and \
+        if hasattr(self, "remove_outliers") and \
                 self.remove_outliers is not None:
-            self.setup_params['remove_outliers'] = self.remove_outliers
+            self.setup_params["remove_outliers"] = self.remove_outliers
 
-        if hasattr(self, 'remove_multicollinearity') and \
-                self.remove_multicollinearity is not None:
-            self.setup_params['remove_multicollinearity'] = \
+        if (
+            hasattr(self, "remove_multicollinearity")
+            and self.remove_multicollinearity is not None
+        ):
+            self.setup_params["remove_multicollinearity"] = (
                 self.remove_multicollinearity
+            )
 
-        if hasattr(self, 'polynomial_features') and \
-                self.polynomial_features is not None:
-            self.setup_params['polynomial_features'] = self.polynomial_features
+        if (
+            hasattr(self, "polynomial_features")
+            and self.polynomial_features is not None
+        ):
+            self.setup_params["polynomial_features"] = self.polynomial_features
 
-        if hasattr(self, 'fix_imbalance') and \
-                self.fix_imbalance is not None:
-            self.setup_params['fix_imbalance'] = self.fix_imbalance
+        if hasattr(self, "fix_imbalance") and self.fix_imbalance is not None:
+            self.setup_params["fix_imbalance"] = self.fix_imbalance
 
         LOG.info(self.setup_params)
         self.exp.setup(self.data, **self.setup_params)
-
 
     def train_model(self):
         LOG.info("Training and selecting the best model")
         if self.task_type == "classification":
             average_displayed = "Weighted"
-            self.exp.add_metric(id=f'PR-AUC-{average_displayed}',
-                                name=f'PR-AUC-{average_displayed}',
-                                target='pred_proba',
-                                score_func=average_precision_score,
-                                average='weighted'
-                                )
+            self.exp.add_metric(
+                id=f"PR-AUC-{average_displayed}",
+                name=f"PR-AUC-{average_displayed}",
+                target="pred_proba",
+                score_func=average_precision_score,
+                average="weighted",
+            )
 
-        if hasattr(self, 'models') and self.models is not None:
-            self.best_model = self.exp.compare_models(
-                include=self.models)
+        if hasattr(self, "models") and self.models is not None:
+            self.best_model = self.exp.compare_models(include=self.models)
         else:
             self.best_model = self.exp.compare_models()
         self.results = self.exp.pull()
         if self.task_type == "classification":
-            self.results.rename(columns={'AUC': 'ROC-AUC'}, inplace=True)
+            self.results.rename(columns={"AUC": "ROC-AUC"}, inplace=True)
 
         _ = self.exp.predict_model(self.best_model)
         self.test_result_df = self.exp.pull()
         if self.task_type == "classification":
             self.test_result_df.rename(
-                columns={'AUC': 'ROC-AUC'}, inplace=True)
-
+                columns={"AUC": "ROC-AUC"},
+                inplace=True
+            )
 
     def save_model(self):
         hdf5_model_path = "pycaret_model.h5"
-        with h5py.File(hdf5_model_path, 'w') as f:
+        with h5py.File(hdf5_model_path, "w") as f:
             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 joblib.dump(self.best_model, temp_file.name)
                 temp_file.seek(0)
                 model_bytes = temp_file.read()
-            f.create_dataset('model', data=np.void(model_bytes))
-
+            f.create_dataset("model", data=np.void(model_bytes))
 
     def generate_plots(self):
         raise NotImplementedError("Subclasses should implement this method")
 
-
     def encode_image_to_base64(self, img_path):
-        with open(img_path, 'rb') as img_file:
-            return base64.b64encode(img_file.read()).decode('utf-8')
-
+        with open(img_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
 
     def save_html_report(self):
         LOG.info("Saving HTML report")
 
         model_name = type(self.best_model).__name__
-        excluded_params = ['html', 'log_experiment', 'system_log', 'test_data']
+        excluded_params = ["html", "log_experiment", "system_log", "test_data"]
         filtered_setup_params = {
-            k: v
-            for k, v in self.setup_params.items() if k not in excluded_params
+            k: v for k,
+            v in self.setup_params.items() if k not in excluded_params
         }
         setup_params_table = pd.DataFrame(
-            list(filtered_setup_params.items()),
-            columns=['Parameter', 'Value'])
+            list(filtered_setup_params.items()), columns=["Parameter", "Value"]
+        )
 
         best_model_params = pd.DataFrame(
             self.best_model.get_params().items(),
-            columns=['Parameter', 'Value'])
+            columns=["Parameter", "Value"]
+        )
         best_model_params.to_csv(
-            os.path.join(self.output_dir, 'best_model.csv'),
-            index=False)
-        self.results.to_csv(os.path.join(
-            self.output_dir, "comparison_results.csv"))
-        self.test_result_df.to_csv(os.path.join(
-            self.output_dir, "test_results.csv"))
+            os.path.join(self.output_dir, "best_model.csv"), index=False
+        )
+        self.results.to_csv(
+            os.path.join(self.output_dir, "comparison_results.csv")
+        )
+        self.test_result_df.to_csv(
+            os.path.join(self.output_dir, "test_results.csv")
+        )
 
         plots_html = ""
         length = len(self.plots)
@@ -257,7 +270,8 @@ class BaseModelTrainer:
             data=self.data,
             target_col=self.target_col,
             task_type=self.task_type,
-            output_dir=self.output_dir)
+            output_dir=self.output_dir,
+        )
         feature_importance_html = analyzer.run()
 
         html_content = f"""
@@ -372,20 +386,17 @@ class BaseModelTrainer:
         html_content += f"""
         {get_html_closing()}
         """
-        with open(os.path.join(
-                    self.output_dir,
-                    "comparison_result.html"), "w"
-                ) as file:
+        with open(
+            os.path.join(self.output_dir, "comparison_result.html"),
+            "w"
+        ) as file:
             file.write(html_content)
-
 
     def save_dashboard(self):
         raise NotImplementedError("Subclasses should implement this method")
 
-
     def generate_plots_explainer(self):
         raise NotImplementedError("Subclasses should implement this method")
-
 
     def generate_tree_plots(self):
         from sklearn.ensemble import RandomForestClassifier, \
@@ -397,11 +408,14 @@ class BaseModelTrainer:
         X_test = self.exp.X_test_transformed.copy()
         y_test = self.exp.y_test_transformed
 
-        is_rf = isinstance(self.best_model, RandomForestClassifier) or \
-            isinstance(self.best_model, RandomForestRegressor)
+        is_rf = isinstance(
+            self.best_model, RandomForestClassifier) or isinstance(
+            self.best_model, RandomForestRegressor
+        )
 
-        is_xgb = isinstance(self.best_model, XGBClassifier) or \
-            isinstance(self.best_model, XGBRegressor)
+        is_xgb = isinstance(self.best_model, XGBClassifier) or isinstance(
+            self.best_model, XGBRegressor
+        )
 
         try:
             if is_rf:
@@ -416,7 +430,6 @@ class BaseModelTrainer:
                 self.trees.append(fig)
         except Exception as e:
             LOG.error(f"Error generating tree plots: {e}")
-
 
     def run(self):
         self.load_data()
